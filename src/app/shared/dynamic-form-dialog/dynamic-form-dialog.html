@@ -6,211 +6,242 @@
 
   <mat-card-content>
     <form [formGroup]="form">
-      <ng-container *ngFor="let key of keys">
-        <!-- Campo contraseña con ojo -->
-        <mat-form-field appearance="outline" class="field" *ngIf="key === 'password'">
-          <mat-label>{{ labelMap[key] || key }}</mat-label>
-          <input matInput [type]="passwordVisible ? 'text' : 'password'" [formControlName]="key"
-            autocomplete="new-password" />
-          <button mat-icon-button matSuffix type="button" (click)="togglePasswordVisibility()"
-            [attr.aria-label]="'Mostrar u ocultar contraseña'" [attr.aria-pressed]="passwordVisible">
-            <mat-icon>{{ passwordVisible ? 'visibility_off' : 'visibility' }}</mat-icon>
-          </button>
-          <mat-error *ngIf="form.get(key)?.hasError('required')">
-            {{ labelMap[key] || key }} es obligatorio
-          </mat-error>
-          <mat-error *ngIf="form.get(key)?.hasError('minlength')">
-            Mínimo {{ form.get(key)?.errors?.['minlength']?.requiredLength }} caracteres
-          </mat-error>
-          <mat-error *ngIf="form.get(key)?.hasError('email')">
-            Ingresa un correo válido
-          </mat-error>
-        </mat-form-field>
 
-        <!-- Campo color: SOLO este si es color -->
-        <mat-form-field appearance="outline" class="field" *ngIf="isColorField(key)">
-          <mat-label>{{ labelMap[key] || key }}</mat-label>
-          <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
-            <input matInput type="color" [formControlName]="key"
-              style="width: 42px; height: 38px; min-width: 42px; border: none; background: none; cursor: pointer; padding: 0;" />
-            <!-- Preview visual amigable -->
-            <span [style.background]="form.get(key)?.value"
-              style="display:inline-block;width:32px;height:32px;border-radius:6px;border:1px solid #ccc;vertical-align:middle;">
-            </span>
-            <!-- Valor hexadecimal, estilizado tipo código -->
-            <span style="font-family: monospace; font-size: 15px;">
-              {{ form.get(key)?.value }}
-            </span>
-          </div>
-        </mat-form-field>
+      @for (key of keys; track key) {
 
-        <div class="estado">
-          <mat-slide-toggle *ngIf="isBooleanField(key)" [formControlName]="key" color="primary">
+      <!-- Campo contraseña con ojo -->
+      @if (key === 'password') {
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>{{ labelMap[key] || key }}</mat-label>
+        <input
+          matInput
+          [type]="passwordVisible ? 'text' : 'password'"
+          [formControlName]="key"
+          autocomplete="new-password" />
 
-          </mat-slide-toggle>
-          <span *ngIf="isBooleanField(key)">
-            {{ form.get(key)?.value ? 'Activo' : 'Inactivo' }}
+        <button
+          matIconButton
+          matSuffix
+          type="button"
+          (click)="togglePasswordVisibility()"
+          [attr.aria-label]="'Mostrar u ocultar contraseña'"
+          [attr.aria-pressed]="passwordVisible">
+          <mat-icon>{{ passwordVisible ? 'visibility_off' : 'visibility'
+            }}</mat-icon>
+        </button>
+
+        @if (form.get(key)?.hasError('required')) {
+        <mat-error>
+          {{ labelMap[key] || key }} es obligatorio
+        </mat-error>
+        }
+
+        @if (form.get(key)?.hasError('minlength')) {
+        <mat-error>
+          Mínimo {{ form.get(key)?.errors?.['minlength']?.requiredLength }}
+          caracteres
+        </mat-error>
+        }
+
+        @if (form.get(key)?.hasError('email')) {
+        <mat-error>
+          Ingresa un correo válido
+        </mat-error>
+        }
+      </mat-form-field>
+      }
+
+      <!-- Campo color -->
+      @if (isColorField(key)) {
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>{{ labelMap[key] || key }}</mat-label>
+        <div
+          style="display: flex; align-items: center; gap: 10px; width: 100%;">
+          <input
+            matInput
+            type="color"
+            [formControlName]="key"
+            style="width: 42px; height: 38px; min-width: 42px; border: none; background: none; cursor: pointer; padding: 0;" />
+          <span
+            [style.background]="form.get(key)?.value"
+            style="display:inline-block;width:32px;height:32px;border-radius:6px;border:1px solid #ccc;vertical-align:middle;">
+          </span>
+          <span style="font-family: monospace; font-size: 15px;">
+            {{ form.get(key)?.value }}
           </span>
         </div>
+      </mat-form-field>
+      }
 
+      <!-- Campo booleano -->
+      @if (isBooleanField(key)) {
+      <div class="estado">
+        <mat-slide-toggle [formControlName]="key" color="primary">
+        </mat-slide-toggle>
+        <span>
+          {{ form.get(key)?.value ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+      }
 
+      <!-- Resto de campos NO archivo / NO password / NO color / NO boolean -->
+      @if (!isFileField(key) && key !== 'password' && !isColorField(key) &&
+      !isBooleanField(key)) {
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>{{ labelMap[key] || key }}</mat-label>
 
-        <!-- Resto de campos NO archivo / NO password / NO color -->
-        <mat-form-field appearance="outline" class="field"
-          *ngIf="!isFileField(key) && key !== 'password' && !isColorField(key) && !isBooleanField(key)">
+        <!-- Select dinámico -->
+        @if (isSelectField(key)) {
+        <mat-select [formControlName]="key">
+          @if (key === 'company' || key === 'position') {
+          @for (opt of selectOptions[key]; track opt.id) {
+          <mat-option [value]="opt.id">{{ opt.name }}</mat-option>
+          }
+          } @else {
+          @for (opt of selectOptions[key]; track opt) {
+          <mat-option [value]="opt">{{ opt }}</mat-option>
+          }
+          }
+        </mat-select>
+        } @else if (isLevelField(key)) {
+        <!-- Select para 'level' -->
+        <mat-select [formControlName]="key">
+          @for (opt of levelOptions; track opt) {
+          <mat-option [value]="opt">{{ opt }}</mat-option>
+          }
+        </mat-select>
+        } @else if (isTextarea(key)) {
+        <!-- Textarea -->
+        <textarea
+          matInput
+          [formControlName]="key"
+          [readonly]="isReadOnly(key)"></textarea>
+        } @else {
+        <!-- Numérico / texto -->
+        <input
+          matInput
+          [type]="getInputType(key)"
+          [formControlName]="key"
+          [readonly]="isReadOnly(key)" />
+        }
+
+        <!-- ERRORES DINÁMICOS -->
+        @if (form.get(key)?.hasError('required')) {
+        <mat-error>
+          {{ labelMap[key] || key }} es obligatorio
+        </mat-error>
+        }
+
+        @if (form.get(key)?.hasError('minlength')) {
+        <mat-error>
+          Mínimo {{ form.get(key)?.errors?.['minlength']?.requiredLength }}
+          caracteres
+        </mat-error>
+        }
+
+        @if (form.get(key)?.hasError('maxlength')) {
+        <mat-error>
+          Máximo {{ form.get(key)?.errors?.['maxlength']?.requiredLength }}
+          caracteres
+        </mat-error>
+        }
+
+        @if (form.get(key)?.hasError('email')) {
+        <mat-error>
+          Ingresa un correo válido
+        </mat-error>
+        }
+
+        @if (form.get(key)?.hasError('pattern')) {
+        <mat-error>
+          @switch (key) {
+          @case ('taxId') {
+          <span>
+            Debe ser un NIT válido (7 a 10 dígitos, puede incluir guion y dígito
+            de verificación).
+          </span>
+          }
+          @case ('phone') {
+          <span>
+            Debe ser un número de teléfono válido (7 a 10 dígitos).
+          </span>
+          }
+          @case ('website') {
+          <span>
+            Ingresa una URL válida (opcional).
+          </span>
+          }
+          @case ('documentNumber') {
+          <span>
+            Debe ser un número entre 7 y 10 dígitos.
+          </span>
+          }
+          @case ('recoveryPhone') {
+          <span>
+            Debe ser un número de 10 dígitos.
+          </span>
+          }
+          @default {
+          <span>Formato inválido</span>
+          }
+          }
+        </mat-error>
+        }
+
+        @if (form.get(key)?.hasError('min')) {
+        <mat-error>
+          Valor mínimo: {{ form.get(key)?.errors?.['min']?.min }}
+        </mat-error>
+        }
+
+        @if (form.get(key)?.hasError('max')) {
+        <mat-error>
+          Valor máximo: {{ form.get(key)?.errors?.['max']?.max }}
+        </mat-error>
+        }
+      </mat-form-field>
+      }
+
+      <!-- Campo archivo -->
+      @if (isFileField(key)) {
+      <div class="field file-upload">
+        <mat-form-field appearance="outline" class="file-field">
           <mat-label>{{ labelMap[key] || key }}</mat-label>
-
-          <!-- Select dinámico -->
-          <mat-select *ngIf="isSelectField(key)" [formControlName]="key">
-            <ng-container *ngIf="key === 'company' || key === 'position'; else genericSelect">
-              <mat-option *ngFor="let opt of selectOptions[key]" [value]="opt.id">{{ opt.name }}</mat-option>
-            </ng-container>
-            <ng-template #genericSelect>
-              <mat-option *ngFor="let opt of selectOptions[key]" [value]="opt">{{ opt }}</mat-option>
-            </ng-template>
-          </mat-select>
-
-          <!-- Select para 'level' -->
-          <mat-select *ngIf="isLevelField(key)" [formControlName]="key">
-            <mat-option *ngFor="let opt of levelOptions" [value]="opt">{{ opt }}</mat-option>
-          </mat-select>
-
-          <!-- Textarea -->
-          <textarea matInput *ngIf="isTextarea(key)" [formControlName]="key" [readonly]="isReadOnly(key)"></textarea>
-
-          <!-- Numérico/texto según fieldConfig -->
-          <input matInput *ngIf="!isTextarea(key) && !isSelectField(key) && !isLevelField(key)"
-            [type]="getInputType(key)" [formControlName]="key" [readonly]="isReadOnly(key)" />
-
-          <!-- ERRORES DINÁMICOS Y PERSONALIZADOS -->
-          <mat-error *ngIf="form.get(key)?.hasError('required')">
-            {{ labelMap[key] || key }} es obligatorio
-          </mat-error>
-          <mat-error *ngIf="form.get(key)?.hasError('minlength')">
-            Mínimo {{ form.get(key)?.errors?.['minlength']?.requiredLength }} caracteres
-          </mat-error>
-          <mat-error *ngIf="form.get(key)?.hasError('maxlength')">
-            Máximo {{ form.get(key)?.errors?.['maxlength']?.requiredLength }} caracteres
-          </mat-error>
-          <mat-error *ngIf="form.get(key)?.hasError('email')">
-            Ingresa un correo válido
-          </mat-error>
-          <mat-error *ngIf="form.get(key)?.hasError('pattern')">
-            <ng-container [ngSwitch]="key">
-              <span *ngSwitchCase="'taxId'">Debe ser un NIT válido (7 a 10 dígitos, puede incluir guion y dígito de
-                verificación).</span>
-              <span *ngSwitchCase="'phone'">Debe ser un número de teléfono válido (7 a 10 dígitos).</span>
-              <span *ngSwitchCase="'website'">Ingresa una URL válida (opcional).</span>
-              <span *ngSwitchCase="'documentNumber'">Debe ser un número entre 7 y 10 dígitos.</span>
-              <span *ngSwitchCase="'recoveryPhone'">Debe ser un número de 10 dígitos.</span>
-              <span *ngSwitchDefault>Formato inválido</span>
-            </ng-container>
-          </mat-error>
-          <mat-error *ngIf="form.get(key)?.hasError('min')">
-            Valor mínimo: {{ form.get(key)?.errors?.['min']?.min }}
-          </mat-error>
-          <mat-error *ngIf="form.get(key)?.hasError('max')">
-            Valor máximo: {{ form.get(key)?.errors?.['max']?.max }}
-          </mat-error>
+          <input
+            matInput
+            [value]="fileNames[key] || ''"
+            placeholder="Selecciona un archivo"
+            readonly />
+          <button
+            matIconButton
+            matSuffix
+            type="button"
+            (click)="fileInput?.click()">
+            <mat-icon>attach_file</mat-icon>
+          </button>
         </mat-form-field>
 
-        <!-- Campo archivo -->
-        <div class="field file-upload" *ngIf="isFileField(key)">
-          <mat-form-field appearance="outline" class="file-field">
-            <mat-label>{{ labelMap[key] || key }}</mat-label>
-            <input matInput [value]="fileNames[key] || ''" placeholder="Selecciona un archivo" readonly />
-            <button mat-icon-button matSuffix type="button" (click)="fileInput?.click()">
-              <mat-icon>attach_file</mat-icon>
-            </button>
-          </mat-form-field>
-          <input type="file" hidden #fileInput [attr.data-key]="key" (change)="onFileChange($event, key)" />
-        </div>
+        <input
+          type="file"
+          hidden
+          #fileInput
+          [attr.data-key]="key"
+          (change)="onFileChange($event, key)" />
+      </div>
+      }
 
-      </ng-container>
+      }
+
     </form>
 
-
-    <!-- SOLO PARA METATABLA: Botón +, Formulario dinámico y tabla de campos -->
-    <ng-container *ngIf="data.isMetaTabla">
-      <div style="margin: 1.5em 0 1em 0;">
-        <button mat-mini-fab color="primary" *ngIf="!showMetaCampoForm" (click)="mostrarMetaCampoForm()">
-          <mat-icon>add</mat-icon>
-        </button>
-        <span *ngIf="!showMetaCampoForm" style="margin-left: 1em; font-weight: 500;">Agregar campo de tabla</span>
-      </div>
-
-      <!-- Formulario de agregar/editar meta campo -->
-      <form *ngIf="showMetaCampoForm" [formGroup]="metaCampoForm"
-        style="display: flex; gap: 12px; flex-wrap: wrap; align-items: end; margin-bottom: 20px;">
-        <mat-form-field appearance="outline" class="example-full-width">
-          <mat-label>Campo</mat-label>
-          <input matInput formControlName="campo" />
-          <mat-error *ngIf="metaCampoForm.get('campo')?.invalid && metaCampoForm.get('campo')?.touched">Campo
-            obligatorio</mat-error>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="example-full-width">
-          <mat-label>Tipo</mat-label>
-          <mat-select formControlName="tipo">
-            <mat-option *ngFor="let tipo of tiposCampo" [value]="tipo">{{ tipo }}</mat-option>
-          </mat-select>
-          <mat-error *ngIf="metaCampoForm.get('tipo')?.invalid && metaCampoForm.get('tipo')?.touched">Selecciona un
-            tipo</mat-error>
-        </mat-form-field>
-        <mat-checkbox formControlName="obligatorio" style="margin-bottom: 8px;">Obligatorio</mat-checkbox>
-        <mat-checkbox formControlName="visible" style="margin-bottom: 8px;">Visible</mat-checkbox>
-        <mat-form-field appearance="outline" class="example-full-width">
-          <mat-label>Orden</mat-label>
-          <input matInput type="number" formControlName="orden" min="1" />
-        </mat-form-field>
-        <button mat-flat-button color="primary" type="button" (click)="guardarMetaCampo()">
-          {{ metaCampoEditIndex === null ? 'Guardar' : 'Actualizar' }}
-        </button>
-        <button mat-stroked-button color="warn" type="button" (click)="cancelarMetaCampo()">Cancelar</button>
-      </form>
-
-      <!-- Tabla de campos meta -->
-      <div class="table-container">
-        <table class="tabla-metas" *ngIf="metaCampos?.length" style="margin-top: 16px;">
-          <thead>
-            <tr>
-              <th>Campo</th>
-              <th>Tipo</th>
-              <th>Obligatorio</th>
-              <th>Visible</th>
-              <th>Orden</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let campo of metaCampos; let i = index">
-              <td>{{ campo.campo }}</td>
-              <td>{{ campo.tipo }}</td>
-              <td>
-                <mat-icon color="primary" *ngIf="campo.obligatorio">check</mat-icon>
-                <mat-icon color="warn" *ngIf="!campo.obligatorio">close</mat-icon>
-              </td>
-              <td>
-                <mat-icon color="primary" *ngIf="campo.visible">visibility</mat-icon>
-                <mat-icon color="warn" *ngIf="!campo.visible">visibility_off</mat-icon>
-              </td>
-              <td>{{ campo.orden }}</td>
-              <td>
-                <button mat-icon-button color="primary" (click)="editarMetaCampo(i)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" (click)="removeMetaCampo(i)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </ng-container>
-
     <div mat-dialog-actions align="end">
-      <button mat-button (click)="dialogRef.close()">Cancelar</button>
-      <button matButton="filled" [disabled]="form.invalid" (click)="guardar()">Guardar</button>
+      <button matButton (click)="dialogRef.close()">Cancelar</button>
+      <button
+        matButton="filled"
+        [disabled]="form.invalid"
+        (click)="guardar()">
+        Guardar
+      </button>
     </div>
   </mat-card-content>
 </mat-card>

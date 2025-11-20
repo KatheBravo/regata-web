@@ -1,12 +1,13 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { ViewChildren, QueryList, ElementRef, AfterViewInit } from '@angular/core';
-import { SharedModule } from '../../shared-module';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { AdminS } from '../../../features/dashboard/submodules/admin/service/admin-s';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { CommonModule } from '@angular/common';
 
 interface FieldConfig {
   type: string;
@@ -16,11 +17,13 @@ interface FieldConfig {
 @Component({
   selector: 'app-dynamic-form-dialog',
   imports: [
-    SharedModule,
     MatSelectModule,
     MatCheckboxModule,
     MatSlideToggleModule,
-
+    MatCardModule,
+    MatIconModule,
+    ReactiveFormsModule,
+    CommonModule
   ],
   templateUrl: './dynamic-form-dialog.html',
   styleUrl: './dynamic-form-dialog.css'
@@ -76,7 +79,6 @@ export class DynamicFormDialog implements OnInit, AfterViewInit {
       id?: string;
     },
     private fb: FormBuilder,
-    private adminService: AdminS
   ) {
     this.labelMap = data.labels ?? {};
     this.selectOptions = data.selectOptions ?? {};
@@ -189,143 +191,6 @@ export class DynamicFormDialog implements OnInit, AfterViewInit {
     return key.toLowerCase().includes('estado');
 
   }
-
-
-
-
-
-
-
-
-
-
-  // ==== MetaCampos SOLO para MetaTabla ====
-
-  mostrarMetaCampoForm() {
-    this.metaCampoForm.reset({
-      campo: '',
-      tipo: '',
-      obligatorio: false,
-      visible: true,
-      orden: this.metaCampos.length
-    });
-    this.metaCampoEditIndex = null;
-    this.showMetaCampoForm = true;
-  }
-
-  editarMetaCampo(idx: number) {
-    const campo = this.metaCampos[idx];
-    this.metaCampoForm.patchValue(campo);
-    this.metaCampoEditIndex = idx;
-    this.showMetaCampoForm = true;
-  }
-
-  guardarMetaCampo() {
-    if (this.metaCampoForm.valid) {
-      const campoEditado = { ...this.metaCampoForm.value };
-      // añadir    "tabla": { "id": "e2396816-5b06-4b41-a241-876b1b415760" },
-
-      if (this.metaCampoEditIndex !== null) {
-        // Si el campo tiene id, edita en el backend
-        const id = this.metaCampos[this.metaCampoEditIndex].id;
-        if (id) {
-          campoEditado.tabla = { id: this.data.id };
-
-          console.log('Campo editado:', campoEditado);
-
-          this.adminService.updateCampo(id, campoEditado).subscribe({
-            next: (actualizado: any) => {
-              this.metaCampos[this.metaCampoEditIndex!] = actualizado;
-              this.metaCampoEditIndex = null;
-              this.showMetaCampoForm = false;
-              this.metaCampoForm.reset({
-                campo: '',
-                tipo: '',
-                obligatorio: false,
-                visible: true,
-                orden: this.metaCampos.length
-              });
-            },
-            error: () => {
-              // Maneja error (opcional: notificación)
-            }
-          });
-        } else {
-          // Si no tiene id, solo edita local
-          this.metaCampos[this.metaCampoEditIndex!] = campoEditado;
-          this.metaCampoEditIndex = null;
-          this.showMetaCampoForm = false;
-          campoEditado.tabla = { id: this.data.id };
-
-          this.metaCampoForm.reset({
-            campo: '',
-            tipo: '',
-            obligatorio: false,
-            visible: true,
-            orden: this.metaCampos.length
-          });
-        }
-      } else {
-
-        console.log('Data:', this.data);
-        campoEditado.tabla = { id: this.data.id };
-
-        // Nuevo campo, crea en el backend
-        this.adminService.createCampo(campoEditado).subscribe({
-          next: (nuevo: any) => {
-            this.metaCampos.push(nuevo);
-            this.metaCampoForm.reset({
-              campo: '',
-              tipo: '',
-              obligatorio: false,
-              visible: true,
-              orden: this.metaCampos.length
-            });
-            this.showMetaCampoForm = false;
-          },
-          error: () => {
-            // Maneja error (opcional: notificación)
-          }
-        });
-        console.log('Nuevo campo:', this.metaCampos);
-      }
-    } else {
-      this.metaCampoForm.markAllAsTouched();
-    }
-  }
-
-
-  cancelarMetaCampo() {
-    this.metaCampoForm.reset({
-      campo: '',
-      tipo: '',
-      obligatorio: false,
-      visible: true,
-      orden: this.metaCampos.length
-    });
-    this.metaCampoEditIndex = null;
-    this.showMetaCampoForm = false;
-  }
-
-  removeMetaCampo(i: number) {
-    const campo = this.metaCampos[i];
-    if (campo.id) {
-      this.adminService.deleteCampo(campo.id).subscribe({
-        next: () => {
-          this.metaCampos.splice(i, 1);
-          this.metaCampos.forEach((c, idx) => c.orden = idx);
-        },
-        error: () => {
-          // Maneja error (opcional: notificación)
-        }
-      });
-    } else {
-      // Si no tiene id (aún no creado en el backend), solo local
-      this.metaCampos.splice(i, 1);
-      this.metaCampos.forEach((c, idx) => c.orden = idx);
-    }
-  }
-
 
   guardar(): void {
     if (this.form.valid) {
