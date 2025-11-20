@@ -1,0 +1,292 @@
+.admin-users-wrapper {
+  min-height: 100vh;
+  padding: 24px;
+  box-sizing: border-box;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  background: #f3f4f6; /* gris claro de fondo general */
+}
+
+.admin-users-card {
+  width: 100%;
+  max-width: 960px;
+
+  padding: 18px 20px 20px;
+  border-radius: 16px;
+
+  background: #ffffff;
+  color: #111827;
+
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e5e7eb;
+}
+
+/* ===========================
+   HEADER
+   =========================== */
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.title-icon mat-icon {
+  font-size: 22px;
+}
+
+.title-text h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.title-text p {
+  margin: 0;
+  margin-top: 2px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions button[mat-stroked-button] {
+  border-radius: 999px;
+  font-size: 13px;
+  padding-inline: 14px;
+}
+
+.header-actions button[mat-icon-button] {
+  border-radius: 999px;
+}
+
+/* ===========================
+   TABLA
+   =========================== */
+
+.table-container {
+  margin-top: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th.mat-header-cell {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 12px;
+}
+
+td.mat-cell {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+}
+
+tr.mat-row:nth-child(even) {
+  background: #fafafa;
+}
+
+tr.mat-row:hover {
+  background: #e5f0ff; /* un azul muy suave en hover */
+}
+
+/* ===========================
+   CELDA USUARIO
+   =========================== */
+
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #3b82f6;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.user-email {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* ===========================
+   PILLS (ROL / ESTADO)
+   =========================== */
+
+.role-pill {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 3px 10px;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.role-admin {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.role-player {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 3px 9px;
+  margin-right: 8px;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.status-active {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.status-inactive {
+  background: #f3f4f6;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+}
+
+/* ===========================
+   ACCIONES
+   =========================== */
+
+.actions-cell {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+/* ===========================
+   LOADING / EMPTY
+   =========================== */
+
+.loading-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.empty-state {
+  padding: 32px 0;
+  text-align: center;
+  color: #6b7280;
+}
+
+.empty-state mat-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 8px;
+  color: #9ca3af;
+}
+
+/* ===========================
+   RESPONSIVE
+   =========================== */
+
+@media (max-width: 768px) {
+  .admin-users-card {
+    padding: 14px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .users-table th.mat-header-cell,
+  .users-table td.mat-cell {
+    padding: 8px;
+  }
+}

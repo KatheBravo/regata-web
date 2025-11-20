@@ -48,4 +48,10 @@ export class Auth {
   register(body: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, body);
   }
+
+  logout(): void {
+    // Aquí puedes limpiar el token del almacenamiento local o cualquier otra limpieza necesaria
+    localStorage.removeItem('authToken');
+  } 
+   
 }
