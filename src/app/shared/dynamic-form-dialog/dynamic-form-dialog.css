@@ -1,0 +1,42 @@
+form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240pt, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.field {
+  width: 100%;
+}
+
+
+mat-card {
+  margin-top: 0pt;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #e0e0e0;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  margin-bottom: 10pt;
+}
+
+.header-icon {
+  margin-right: 8px;
+  color: #1976d2;
+}
+
+
+.file-upload {
+  width: 100%;
+}
+
+.file-field {
+  width: 100%;
+}
