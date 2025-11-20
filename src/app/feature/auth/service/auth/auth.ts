@@ -1,7 +1,6 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { isPlatformBrowser } from '@angular/common';
-import { Observable, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment.development';
 
 export interface LoginRequest {
@@ -13,85 +12,40 @@ export interface RegisterRequest {
   nombre: string;
   email: string;
   password: string;
-  role?: string; // opcional, según tu backend
+  role?: string; // opcional, por si mandas PLAYER/ADMIN desde front
 }
 
+// 👇 coincide con el JSON que mostraste del backend
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken?: string;
+  token: string;
+  usuarioId: number;
+  nombre: string;
+  email: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
+  /**
+   * Si en environment.apiUrl tienes 'http://localhost:8080'
+   * esto queda 'http://localhost:8080/api'
+   */
   private apiUrl = environment.apiUrl + '/api';
 
-  constructor(
-    private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
-
-  private isBrowser(): boolean {
-    return isPlatformBrowser(this.platformId);
-  }
+  constructor(private http: HttpClient) {}
 
   // =====================
   //  LOGIN
   // =====================
   login(body: LoginRequest): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/auth/login`, body)
-      .pipe(
-        tap((res) => {
-          if (this.isBrowser()) {
-            localStorage.setItem('accessToken', res.accessToken);
-            if (res.refreshToken) {
-              localStorage.setItem('refreshToken', res.refreshToken);
-            } else {
-              localStorage.removeItem('refreshToken');
-            }
-          }
-        })
-      );
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, body);
   }
 
   // =====================
   //  REGISTER
   // =====================
   register(body: RegisterRequest): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/auth/register`, body)
-      .pipe(
-        tap((res) => {
-          if (this.isBrowser()) {
-            localStorage.setItem('accessToken', res.accessToken);
-            if (res.refreshToken) {
-              localStorage.setItem('refreshToken', res.refreshToken);
-            } else {
-              localStorage.removeItem('refreshToken');
-            }
-          }
-        })
-      );
-  }
-
-  // =====================
-  //  HELPERS PARA EL INTERCEPTOR
-  // =====================
-  getAccessToken(): string | null {
-    if (!this.isBrowser()) return null;
-    return localStorage.getItem('accessToken');
-  }
-
-  getRefreshToken(): string | null {
-    if (!this.isBrowser()) return null;
-    return localStorage.getItem('refreshToken');
-  }
-
-  logout(): void {
-    if (!this.isBrowser()) return;
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, body);
   }
 }

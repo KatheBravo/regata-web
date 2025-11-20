@@ -7,9 +7,9 @@ import { environment } from '../../../../../environments/environment.development
   providedIn: 'root',
 })
 export class AdminS {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = environment.apiUrl + '/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getUsuarios(options?: {
     role?: string;

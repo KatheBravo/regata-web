@@ -1,1 +1,173 @@
-<p>login works!</p>
+<div class="auth-wrapper">
+    <mat-card class="auth-card">
+        <div class="auth-header">
+            <h1>Regata</h1>
+            <p>Inicia sesión o crea tu cuenta para empezar.</p>
+        </div>
+
+        <div class="auth-tabs">
+            <button
+                matButton="filled"
+                type="button"
+                class="tab-btn"
+                [class.active]="activeTab === 'login'"
+                (click)="setTab('login')">
+                Iniciar sesión
+            </button>
+            <button
+                matButton="filled"
+                type="button"
+                class="tab-btn"
+                [class.active]="activeTab === 'register'"
+                (click)="setTab('register')">
+                Registrarme
+            </button>
+        </div>
+
+        <!-- LOGIN vs REGISTRO con nuevo control flow -->
+        @if (activeTab === 'login') {
+
+        <!-- FORM LOGIN -->
+        <form
+            [formGroup]="loginForm"
+            (ngSubmit)="onLogin()"
+            class="auth-form"
+            novalidate>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Correo electrónico</mat-label>
+                <input
+                    matInput
+                    type="email"
+                    formControlName="email"
+                    placeholder="tu@correo.com" />
+
+                <mat-error>
+                    @if (loginEmailCtrl?.hasError('required')) {
+                    El correo es obligatorio.
+                    } @else if (loginEmailCtrl?.hasError('email')) {
+                    Ingresa un correo válido.
+                    }
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Contraseña</mat-label>
+                <input
+                    matInput
+                    type="password"
+                    formControlName="password"
+                    placeholder="••••••••" />
+
+                <mat-error>
+                    @if (loginPasswordCtrl?.hasError('required')) {
+                    La contraseña es obligatoria.
+                    }
+                </mat-error>
+            </mat-form-field>
+
+            <button
+                mat-flat-button
+                color="primary"
+                class="primary-btn"
+                type="submit"
+                [disabled]="loading">
+                {{ loading ? 'Ingresando...' : 'Iniciar sesión' }}
+            </button>
+        </form>
+
+        } @else {
+
+        <!-- FORM REGISTRO -->
+        <form
+            [formGroup]="registerForm"
+            (ngSubmit)="onRegister()"
+            class="auth-form"
+            novalidate>
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Nombre</mat-label>
+                <input
+                    matInput
+                    type="text"
+                    formControlName="nombre"
+                    placeholder="Tu nombre" />
+                <mat-error>
+                    @if (regNombreCtrl?.hasError('required')) {
+                    El nombre es obligatorio.
+                    } @else if (regNombreCtrl?.hasError('minlength')) {
+                    Escribe al menos 2 caracteres.
+                    }
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Correo electrónico</mat-label>
+                <input
+                    matInput
+                    type="email"
+                    formControlName="email"
+                    placeholder="tu@correo.com" />
+                <mat-error>
+                    @if (regEmailCtrl?.hasError('required')) {
+                    El correo es obligatorio.
+                    } @else if (regEmailCtrl?.hasError('email')) {
+                    Ingresa un correo válido.
+                    }
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Contraseña</mat-label>
+                <input
+                    matInput
+                    type="password"
+                    formControlName="password"
+                    placeholder="Mínimo 6 caracteres" />
+                <mat-error>
+                    @if (regPasswordCtrl?.hasError('required')) {
+                    La contraseña es obligatoria.
+                    } @else if (regPasswordCtrl?.hasError('minlength')) {
+                    Debe tener al menos 6 caracteres.
+                    }
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Repite la contraseña</mat-label>
+                <input
+                    matInput
+                    type="password"
+                    formControlName="confirmPassword"
+                    placeholder="Repite tu contraseña" />
+                <mat-error>
+                    @if (registerForm.errors?.['passwordMismatch']) {
+                    Las contraseñas no coinciden.
+                    }
+                </mat-error>
+            </mat-form-field>
+
+            <button
+                matButton="filled"
+                class="primary-btn"
+                type="submit"
+                [disabled]="loading">
+                {{ loading ? 'Creando cuenta...' : 'Crear cuenta' }}
+            </button>
+        </form>
+
+        }
+
+        <div class="auth-messages">
+            @if (errorMessage) {
+            <p class="error-message">
+                {{ errorMessage }}
+            </p>
+            }
+
+            @if (successMessage) {
+            <p class="success-message">
+                {{ successMessage }}
+            </p>
+            }
+        </div>
+    </mat-card>
+</div>
