@@ -1,0 +1,39 @@
+<mat-sidenav-container class="admin-shell">
+  <mat-sidenav mode="side" opened class="admin-sidenav">
+    <div class="logo">
+      <span class="logo-mark">⛵</span>
+      <span class="logo-text">Regata Admin</span>
+    </div>
+
+    <mat-nav-list>
+      @for (item of menuItems; track item.route) {
+        <a
+          mat-list-item
+          [routerLink]="item.route"
+          routerLinkActive="active-link">
+          <mat-icon matListIcon>{{ item.icon }}</mat-icon>
+          <span matLine>{{ item.label }}</span>
+        </a>
+      }
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="admin-content">
+    <mat-toolbar color="primary" class="admin-toolbar">
+      <span class="toolbar-title">Administración</span>
+      <span class="flex-spacer"></span>
+
+      <button
+        mat-icon-button
+        type="button"
+        matTooltip="Cerrar sesión"
+        (click)="onLogout()">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </mat-toolbar>
+
+    <div class="admin-page-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

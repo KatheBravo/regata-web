@@ -1,0 +1,138 @@
+<div class="admin-modelos-wrapper">
+  <mat-card class="admin-modelos-card">
+    <!-- Header -->
+    <div class="card-header">
+      <div class="header-left">
+        <div class="title-icon">
+          <mat-icon>directions_boat</mat-icon>
+        </div>
+        <div class="title-text">
+          <h2>Modelos de barco</h2>
+          <p>Administra los modelos disponibles para las regatas.</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button
+          mat-stroked-button
+          color="primary"
+          type="button"
+          (click)="onCreateModelo()">
+          <mat-icon>add</mat-icon>
+          <span>Nuevo modelo</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      @if (modelos$ | async; as modelos) {
+        @if (!modelos || modelos.length === 0) {
+          <div class="empty-state">
+            <mat-icon>inventory_2</mat-icon>
+            <p>No hay modelos para mostrar.</p>
+          </div>
+        } @else {
+          <table mat-table [dataSource]="modelos" class="models-table">
+            <!-- Modelo (nombre + descripción + punto de color) -->
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef>Modelo</th>
+              <td mat-cell *matCellDef="let m">
+                <div class="modelo-cell">
+                  <div
+                    class="color-dot"
+                    [style.backgroundColor]="m.color">
+                  </div>
+                  <div class="modelo-meta">
+                    <div class="modelo-nombre">{{ m.nombre }}</div>
+                    <div class="modelo-desc">
+                      {{ m.descripcion }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Color -->
+            <ng-container matColumnDef="color">
+              <th mat-header-cell *matHeaderCellDef>Color</th>
+              <td mat-cell *matCellDef="let m">
+                <div class="color-cell">
+                  <span
+                    class="color-box"
+                    [style.backgroundColor]="m.color">
+                  </span>
+                  <span class="color-code">{{ m.color }}</span>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Velocidad máxima -->
+            <ng-container matColumnDef="velMax">
+              <th mat-header-cell *matHeaderCellDef>Vel. máx</th>
+              <td mat-cell *matCellDef="let m">
+                {{ m.velMax }}
+              </td>
+            </ng-container>
+
+            <!-- Aceleración máxima -->
+            <ng-container matColumnDef="acelMax">
+              <th mat-header-cell *matHeaderCellDef>Acel. máx</th>
+              <td mat-cell *matCellDef="let m">
+                {{ m.acelMax }}
+              </td>
+            </ng-container>
+
+            <!-- Maniobrabilidad -->
+            <ng-container matColumnDef="maniobrabilidad">
+              <th mat-header-cell *matHeaderCellDef>Maniobrabilidad</th>
+              <td mat-cell *matCellDef="let m">
+                {{ m.maniobrabilidad }}%
+              </td>
+            </ng-container>
+
+            <!-- Acciones -->
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef></th>
+              <td mat-cell *matCellDef="let m">
+                <div class="actions-cell">
+                  <button
+                    mat-icon-button
+                    type="button"
+                    matTooltip="Editar"
+                    (click)="onEditModelo(m)">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+
+                  <button
+                    mat-icon-button
+                    type="button"
+                    color="warn"
+                    matTooltip="Eliminar"
+                    (click)="onDeleteModelo(m)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr
+              mat-header-row
+              *matHeaderRowDef="displayedColumns">
+            </tr>
+            <tr
+              mat-row
+              *matRowDef="let row; columns: displayedColumns">
+            </tr>
+          </table>
+        }
+      } @else {
+        <div class="loading-wrapper">
+          <mat-progress-spinner
+            mode="indeterminate"
+            diameter="36">
+          </mat-progress-spinner>
+        </div>
+      }
+    </div>
+  </mat-card>
+</div>

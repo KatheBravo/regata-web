@@ -44,7 +44,7 @@ export class Login {
   constructor(
     private fb: FormBuilder,
     private auth: Auth,
-    private adminS: AdminS,      // 👈 inyectamos AdminS
+    private adminS: AdminS,
     private router: Router
   ) {
     this.loginForm = this.fb.group({
@@ -96,6 +96,8 @@ export class Login {
 
     this.auth.login({ email, password }).subscribe({
       next: (resp) => {
+        // RESPUESTA REAL DEL BACKEND:
+        // { token, usuarioId, nombre, email }
         const token = resp.token;
         const usuarioId = resp.usuarioId;
         this.handleAuthSuccess(token, usuarioId);
@@ -144,17 +146,17 @@ export class Login {
   //  POST LOGIN/REGISTER
   // ======================
   private handleAuthSuccess(token: string, usuarioId?: number): void {
-    // 👇 clave alineada con el interceptor
+    // 🔐 Guardar token con la misma clave que usa el interceptor
     if (typeof window !== 'undefined') {
       localStorage.setItem('token', token);
     }
 
-    // Llamamos /api/usuarios/{id} solo si viene el id
+    // Si viene usuarioId, consultamos /api/usuarios/{id} para confirmar rol
     if (usuarioId != null) {
       this.adminS.getUsuario(usuarioId).subscribe({
         next: (usuario) => {
           console.log('Usuario cargado desde /api/usuarios:', usuario);
-          // Si tu DTO trae un campo rol/role, puedes usarlo aquí:
+
           const roleFromApi =
             (usuario.role as string) ||
             (usuario.rol as string) ||
@@ -165,30 +167,29 @@ export class Login {
         },
         error: (err) => {
           console.error('Error cargando /api/usuarios/{id}', err);
-          // Si falla, navegamos solo con roles del token
+          // Si falla, navegamos sólo con roles del token
           this.navigateByRole(null, token);
         },
       });
     } else {
-      // Si no tenemos usuarioId, nos basamos solo en el token
+      // Si no hay usuarioId, decidimos sólo con el JWT
       this.navigateByRole(null, token);
     }
   }
 
   // Decide la ruta según ADMIN / PLAYER
   private navigateByRole(roleFromApi: string | null, token: string): void {
-    const rolesFromToken = this.decodeRoles(token);
-    const allRoles = [
-      ...(roleFromApi ? [roleFromApi] : []),
-      ...rolesFromToken,
-    ].map((r) => r.toUpperCase());
+    const rolesFromToken = this.decodeRoles(token).map((r) => r.toUpperCase());
+    const apiRoles = roleFromApi ? [roleFromApi.toUpperCase()] : [];
+
+    const allRoles = [...apiRoles, ...rolesFromToken];
 
     this.loading = false;
 
+    // 👇 OJO: ruta nueva con layout de admin
     if (allRoles.includes('ADMIN')) {
-      this.router.navigate(['/admin-users']);
+      this.router.navigate(['/admin', 'usuarios']);
     } else {
-      // PLAYER u otro → inicio
       this.router.navigate(['/inicio']);
     }
   }
