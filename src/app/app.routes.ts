@@ -2,12 +2,18 @@ import { Routes } from '@angular/router';
 
 // Auth / jugador
 import { Login } from './feature/auth/login/login';
-import { Inicio } from './feature/jugador/pages/inicio/inicio';
 
 // Admin
 import { AdminLayout } from './feature/admin/admin-layout/admin-layout';
 import { AdminUsers } from './feature/admin/admin-users/admin-users';
 import { AdminModelosBarco } from './feature/admin/admin-modelos-barco/admin-modelos-barco';
+
+// Jugador
+import { Inicio } from './feature/jugador/pages/inicio/inicio';
+import { MisBarcos } from './feature/jugador/pages/mis-barcos/mis-barcos';
+import { Partidas } from './feature/jugador/pages/partidas/partidas';
+import { JugadorLayout } from './feature/jugador/pages/jugador-layout/jugador-layout';
+
 
 export const routes: Routes = [
   // Redirige raíz a login
@@ -15,9 +21,6 @@ export const routes: Routes = [
 
   // Auth
   { path: 'login', component: Login },
-
-  // Jugador
-  { path: 'inicio', component: Inicio },
 
   // Admin con layout + sidebar
   {
@@ -27,6 +30,22 @@ export const routes: Routes = [
       { path: '', redirectTo: 'usuarios', pathMatch: 'full' },
       { path: 'usuarios', component: AdminUsers },
       { path: 'modelos-barco', component: AdminModelosBarco },
+    ],
+  },
+
+  // JUGADOR
+  {
+    path: 'inicio',
+    component: JugadorLayout,
+    children: [
+      // Dashboard del jugador
+      { path: '', component: Inicio },
+
+      // Mis barcos
+      { path: 'barcos', component: MisBarcos },
+
+      // Lobby/partidas
+      { path: 'partidas', component: Partidas },
     ],
   },
 

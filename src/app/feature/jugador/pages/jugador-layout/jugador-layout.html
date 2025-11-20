@@ -1,0 +1,45 @@
+<div class="jugador-layout-wrapper">
+  <mat-toolbar color="primary" class="top-toolbar">
+    <div class="toolbar-left">
+      <mat-icon class="logo-icon">sailing</mat-icon>
+      <span class="app-title">Regata</span>
+    </div>
+
+    <div class="toolbar-center">
+      <a
+        mat-button
+        routerLink="/inicio"
+        routerLinkActive="active-link"
+        [routerLinkActiveOptions]="{ exact: true }">
+        <mat-icon>home</mat-icon>
+        <span>Inicio</span>
+      </a>
+
+      <a
+        mat-button
+        routerLink="/inicio/barcos"
+        routerLinkActive="active-link">
+        <mat-icon>directions_boat</mat-icon>
+        <span>Mis barcos</span>
+      </a>
+
+      <a
+        mat-button
+        routerLink="/inicio/partidas"
+        routerLinkActive="active-link">
+        <mat-icon>sports_esports</mat-icon>
+        <span>Partidas</span>
+      </a>
+    </div>
+
+    <div class="toolbar-right">
+      <button mat-icon-button (click)="logout()" matTooltip="Cerrar sesión">
+        <mat-icon>logout</mat-icon>
+      </button>
+    </div>
+  </mat-toolbar>
+
+  <main class="jugador-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

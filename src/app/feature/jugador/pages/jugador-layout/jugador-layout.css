@@ -1,0 +1,47 @@
+.jugador-layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.top-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  margin-right: 4px;
+}
+
+.app-title {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.active-link {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.jugador-content {
+  flex: 1;
+  padding: 16px;
+  background: #f3f4f6;
+}
