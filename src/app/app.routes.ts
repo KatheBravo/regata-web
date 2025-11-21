@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-// Auth / jugador
+// Auth
 import { Login } from './feature/auth/login/login';
 
 // Admin
@@ -9,20 +9,20 @@ import { AdminUsers } from './feature/admin/admin-users/admin-users';
 import { AdminModelosBarco } from './feature/admin/admin-modelos-barco/admin-modelos-barco';
 
 // Jugador
+import { JugadorLayout } from './feature/jugador/pages/jugador-layout/jugador-layout';
 import { Inicio } from './feature/jugador/pages/inicio/inicio';
 import { MisBarcos } from './feature/jugador/pages/mis-barcos/mis-barcos';
 import { Partidas } from './feature/jugador/pages/partidas/partidas';
-import { JugadorLayout } from './feature/jugador/pages/jugador-layout/jugador-layout';
-
+import { GamePartida } from './feature/jugador/pages/game-partida/game-partida';
 
 export const routes: Routes = [
-  // Redirige raíz a login
+  // Raíz -> login
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 
   // Auth
   { path: 'login', component: Login },
 
-  // Admin con layout + sidebar
+  // ADMIN (layout + rutas hijas)
   {
     path: 'admin',
     component: AdminLayout,
@@ -33,7 +33,7 @@ export const routes: Routes = [
     ],
   },
 
-  // JUGADOR
+  // JUGADOR (layout + rutas hijas)
   {
     path: 'inicio',
     component: JugadorLayout,
@@ -44,11 +44,13 @@ export const routes: Routes = [
       // Mis barcos
       { path: 'barcos', component: MisBarcos },
 
-      // Lobby/partidas
+      // Lobby / listado de partidas
       { path: 'partidas', component: Partidas },
+
+      { path: 'partida/:id', component: GamePartida },
     ],
   },
 
-  // Cualquier ruta rara -> login
+  // Cualquier cosa rara -> login
   { path: '**', redirectTo: 'login' },
 ];

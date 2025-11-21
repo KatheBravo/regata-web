@@ -1,0 +1,270 @@
+.game-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.game-card {
+  width: 100%;
+  max-width: 1200px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-left mat-icon {
+  font-size: 36px;
+}
+
+.title-text h2 {
+  margin: 0;
+}
+
+.title-text p {
+  margin: 0;
+  font-size: 13px;
+  color: #888;
+}
+
+.header-right button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.info-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 8px 0 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 12px;
+}
+
+.info-item {
+  display: flex;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.info-item .label {
+  font-weight: 600;
+  color: #bbb;
+}
+
+.info-item .value {
+  font-weight: 500;
+}
+
+.muted {
+  color: #888;
+}
+
+.small {
+  font-size: 12px;
+}
+
+/* Layout principal: mapa + panel lateral */
+.game-content {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr);
+  gap: 16px;
+}
+
+.map-panel h3,
+.side-panel h3 {
+  margin-top: 0;
+}
+
+.map-container {
+  display: inline-block;
+  padding: 8px;
+  background: #101010;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.1;
+}
+
+.map-row {
+  white-space: nowrap;
+}
+
+.map-cell {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Terreno */
+.cell-wall {
+  background-color: #333;
+}
+
+.cell-water {
+  background-color: #001a33;
+}
+
+.cell-start {
+  background-color: #003300;
+}
+
+.cell-goal {
+  background-color: #4a1a00;
+}
+
+/* Barcos */
+.ship-badge {
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  background-color: #ffd54f;
+  color: #000;
+  box-shadow: 0 0 0 1px #000;
+}
+
+.ship-badge.mine {
+  background-color: #64ffda;
+}
+
+/* Panel derecho */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.side-section {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.participantes-table {
+  width: 100%;
+}
+
+.jugador-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #424242;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.you-tag {
+  margin-left: 4px;
+  font-size: 11px;
+  color: #64ffda;
+}
+
+.barco-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+
+.pos-vel {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+}
+
+/* Pills */
+.pill {
+  display: inline-flex;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  margin-right: 4px;
+}
+
+.pill-alive {
+  background: #2e7d32;
+}
+
+.pill-dead {
+  background: #b71c1c;
+}
+
+.pill-meta {
+  background: #1565c0;
+}
+
+/* Estado pill */
+.estado-pill {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.estado-waiting {
+  background: #795548;
+}
+
+.estado-running {
+  background: #2e7d32;
+}
+
+.estado-finished {
+  background: #616161;
+}
+
+/* Controles */
+.controls-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.controls-pad {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pad-row {
+  display: flex;
+  gap: 4px;
+}
+
+.pad-row button {
+  min-width: 36px;
+  padding: 0;
+}
+
+/* Loading */
+.loading-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}

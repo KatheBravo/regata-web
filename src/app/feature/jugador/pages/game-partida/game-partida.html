@@ -1,0 +1,302 @@
+<div class="game-wrapper" *ngIf="partida as p; else loadingTpl">
+    <mat-card class="game-card">
+        <!-- HEADER -->
+        <div class="card-header">
+            <div class="header-left">
+                <mat-icon>directions_boat</mat-icon>
+                <div class="title-text">
+                    <h2>Partida #{{ p.id }} — {{ p.nombre }}</h2>
+                    <p>{{ estadoLabel() }} · Mapa: {{ p.mapaNombre }}</p>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <!-- Solo host y en estado WAITING puede iniciar la partida -->
+                <button
+                    mat-flat-button
+                    color="warn"
+                    *ngIf="esHost && p.estado === 'WAITING'"
+                    (click)="onIniciarPartida()">
+                    <mat-icon>play_arrow</mat-icon>
+                    <span>Iniciar partida</span>
+                </button>
+
+                <button mat-stroked-button (click)="backToLobby()">
+                    <mat-icon>arrow_back</mat-icon>
+                    <span>Volver al lobby</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- SUBHEADER INFO -->
+        <div class="info-strip">
+            <div class="info-item">
+                <span class="label">Jugadores:</span>
+                <span class="value">
+                    {{ p.participantes.length }}/{{ p.maxJugadores }}
+                </span>
+            </div>
+
+            <div class="info-item">
+                <span class="label">Host:</span>
+                <span class="value">
+                    <ng-container *ngIf="p.hostUsuarioNombre; else noHostTpl">
+                        {{ p.hostUsuarioNombre }}
+                    </ng-container>
+                    <ng-template #noHostTpl>
+                        <span class="muted">Sin host</span>
+                    </ng-template>
+                </span>
+            </div>
+
+            <div class="info-item" *ngIf="miParticipante as me">
+                <span class="label">Tu barco:</span>
+                <span class="value">
+                    {{ me.barcoNombre }} · Pos ({{ me.posX }}, {{ me.posY }}) ·
+                    Vel ({{ me.velX }}, {{ me.velY }})
+                </span>
+            </div>
+
+            <div class="info-item" *ngIf="!miParticipante">
+                <span class="label">Modo:</span>
+                <span class="value muted">
+                    Espectador (no estás en esta partida)
+                </span>
+            </div>
+        </div>
+
+        <div class="game-content">
+            <!-- MAPA -->
+            <div class="map-panel">
+                <h3>Mapa</h3>
+
+                <div class="map-container">
+                    <div class="map-row"
+                        *ngFor="let row of getRows(); let y = index">
+                        <span
+                            class="map-cell"
+                            *ngFor="let ch of getChars(row); let x = index"
+                            [ngClass]="cellClass(ch)">
+                            <!-- Si hay barcos en la celda, los pintamos encima -->
+                            <ng-container
+                                *ngIf="hasParticipantsAt(x, y); else terrainTpl">
+                                <span
+                                    class="ship-badge"
+                                    *ngFor="let part of getParticipantsAt(x, y); let i = index"
+                                    [ngClass]="{ mine: isMine(part) }"
+                                    [matTooltip]="part.usuarioNombre + ' — ' + part.barcoNombre">
+                                    {{ part.usuarioNombre.charAt(0) | uppercase
+                                    }}
+                                </span>
+                            </ng-container>
+
+                            <ng-template #terrainTpl>
+                                {{ ch }}
+                            </ng-template>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL DERECHO: PARTICIPANTES + CONTROLES -->
+            <div class="side-panel">
+                <div class="side-section">
+                    <h3>Participantes</h3>
+
+                    <table
+                        mat-table
+                        [dataSource]="p.participantes"
+                        class="participantes-table">
+                        <!-- Jugador -->
+                        <ng-container matColumnDef="jugador">
+                            <th mat-header-cell *matHeaderCellDef>Jugador</th>
+                            <td mat-cell *matCellDef="let pl">
+                                <div class="jugador-cell">
+                                    <div class="avatar-circle">
+                                        {{ pl.usuarioNombre?.charAt(0) |
+                                        uppercase }}
+                                    </div>
+                                    <div class="jugador-meta">
+                                        <div class="jugador-nombre">
+                                            {{ pl.usuarioNombre }}
+                                            <span class="you-tag"
+                                                *ngIf="isMine(pl)">
+                                                (tú)
+                                            </span>
+                                        </div>
+                                        <div class="jugador-id">
+                                            ID usuario: {{ pl.usuarioId }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Barco -->
+                        <ng-container matColumnDef="barco">
+                            <th mat-header-cell *matHeaderCellDef>Barco</th>
+                            <td mat-cell *matCellDef="let pl">
+                                <div class="barco-meta">
+                                    <div class="barco-nombre">
+                                        {{ pl.barcoNombre }}
+                                    </div>
+                                    <div class="barco-id">
+                                        ID barco: {{ pl.barcoId }}
+                                    </div>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Estado -->
+                        <ng-container matColumnDef="estado">
+                            <th mat-header-cell *matHeaderCellDef>Estado</th>
+                            <td mat-cell *matCellDef="let pl">
+                                <span
+                                    class="pill"
+                                    [ngClass]="{ 'pill-dead': !pl.vivo, 'pill-alive': pl.vivo }">
+                                    {{ pl.vivo ? 'Vivo' : 'Fuera' }}
+                                </span>
+
+                                <span class="pill pill-meta"
+                                    *ngIf="pl.llegoMeta">
+                                    Llegó a meta
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Pos / Vel -->
+                        <ng-container matColumnDef="pos">
+                            <th mat-header-cell *matHeaderCellDef>Pos / Vel</th>
+                            <td mat-cell *matCellDef="let pl">
+                                <div class="pos-vel">
+                                    <span>Pos: ({{ pl.posX }}, {{ pl.posY
+                                        }})</span>
+                                    <span>Vel: ({{ pl.velX }}, {{ pl.velY
+                                        }})</span>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row
+                            *matHeaderRowDef="participantesColumns"></tr>
+                        <tr
+                            mat-row
+                            *matRowDef="let row; columns: participantesColumns"></tr>
+                    </table>
+                </div>
+
+                <div class="side-section">
+                    <h3>Controles</h3>
+
+                    <div *ngIf="!puedoJugar" class="muted small">
+                        No puedes mover ningún barco ahora mismo.
+                        <ng-container *ngIf="partida?.estado === 'WAITING'">
+                            La partida aún no ha iniciado o no perteneces a
+                            ella.
+                        </ng-container>
+                        <ng-container *ngIf="partida?.estado === 'FINISHED'">
+                            La partida ya terminó.
+                        </ng-container>
+                    </div>
+
+                    <div *ngIf="puedoJugar" class="controls-grid">
+                        <!-- Dummy para evitar warnings del *ngFor vacío -->
+                        <button
+                            mat-raised-button
+                            *ngFor="let accY of [1, 0, -1]; let row = index"
+                            class="control-row"
+                            disabled
+                            style="display: none">
+                        </button>
+
+                        <div class="controls-pad">
+                            <!-- Fila superior: ARRIBA (accY = -1) -->
+                            <div class="pad-row">
+                                <button
+                                    mat-stroked-button
+                                    (click)="onEnviarTurno(-1, -1)"
+                                    matTooltip="Acelerar arriba-izquierda">
+                                    ↖
+                                </button>
+                                <button
+                                    mat-stroked-button
+                                    (click)="onEnviarTurno(0, -1)"
+                                    matTooltip="Acelerar arriba">
+                                    ↑
+                                </button>
+                                <button
+                                    mat-stroked-button
+                                    (click)="onEnviarTurno(1, -1)"
+                                    matTooltip="Acelerar arriba-derecha">
+                                    ↗
+                                </button>
+                            </div>
+
+                            <!-- Fila central -->
+                            <div class="pad-row">
+                                <button
+                                    mat-stroked-button
+                                    (click)="onEnviarTurno(-1, 0)"
+                                    matTooltip="Acelerar izquierda">
+                                    ←
+                                </button>
+                                <button
+                                    mat-flat-button
+                                    color="primary"
+                                    (click)="onEnviarTurno(0, 0)"
+                                    matTooltip="Sin aceleración (no recomendada)">
+                                    •
+                                </button>
+                                <button
+                                    mat-stroked-button
+                                    (click)="onEnviarTurno(1, 0)"
+                                    matTooltip="Acelerar derecha">
+                                    →
+                                </button>
+                            </div>
+
+                            <!-- Fila inferior: ABAJO (accY = +1) -->
+                            <div class="pad-row">
+                                <button
+                                    mat-stroked-button
+                                    (click)="onEnviarTurno(-1, 1)"
+                                    matTooltip="Acelerar abajo-izquierda">
+                                    ↙
+                                </button>
+                                <button
+                                    mat-stroked-button
+                                    (click)="onEnviarTurno(0, 1)"
+                                    matTooltip="Acelerar abajo">
+                                    ↓
+                                </button>
+                                <button
+                                    mat-stroked-button
+                                    (click)="onEnviarTurno(1, 1)"
+                                    matTooltip="Acelerar abajo-derecha">
+                                    ↘
+                                </button>
+                            </div>
+                        </div>
+
+                        <p class="controls-hint small">
+                            Cada botón aplica una aceleración (Δvx, Δvy)
+                            respetando las
+                            restricciones del modelo de barco (velMax, acelMax).
+                            El backend
+                            valida choques, salidas de mapa y llegada a meta.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </mat-card>
+</div>
+
+<ng-template #loadingTpl>
+    <div class="loading-wrapper">
+        <mat-progress-spinner
+            mode="indeterminate"
+            diameter="48"></mat-progress-spinner>
+    </div>
+</ng-template>

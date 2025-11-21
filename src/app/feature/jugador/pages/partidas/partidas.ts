@@ -22,10 +22,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Validators } from '@angular/forms';
 import Swal from 'sweetalert2';
 
+import { Router } from '@angular/router';
 import { DynamicFormDialog } from '../../../../shared/dynamic-form-dialog/dynamic-form-dialog';
 
 @Component({
@@ -39,6 +41,7 @@ import { DynamicFormDialog } from '../../../../shared/dynamic-form-dialog/dynami
     MatProgressSpinnerModule,
     MatTableModule,
     MatDialogModule,
+    MatTooltipModule,
   ],
   templateUrl: './partidas.html',
   styleUrl: './partidas.css',
@@ -53,10 +56,8 @@ export class Partidas implements OnInit {
 
   loading = false;
 
-  // columnas para la tabla de participantes (detalle)
   participantesColumns: string[] = ['jugador', 'barco', 'estado', 'pos'];
 
-  // columnas para la tabla de partidas (listado)
   partidasColumns: string[] = [
     'id',
     'nombre',
@@ -70,12 +71,12 @@ export class Partidas implements OnInit {
     private partidaS: PartidaS,
     private barcosS: BarcosS,
     private dialog: MatDialog,
-    private cdr: ChangeDetectorRef
-  ) { }
+    private cdr: ChangeDetectorRef,
+    private router: Router,
+  ) {}
 
   // ======== ciclo de vida =========
   ngOnInit(): void {
-    // Al abrir la pantalla, cargamos el listado de partidas
     this.loadPartidas();
   }
 
@@ -120,13 +121,20 @@ export class Partidas implements OnInit {
     this.cdr.markForCheck();
   }
 
+  private normalizePartida(p: EstadoPartidaDto): EstadoPartidaDto {
+    return {
+      ...p,
+      participantes: p.participantes ?? [],
+    };
+  }
+
   private setPartidaActual(p: EstadoPartidaDto | null): void {
-    this.partidaActual = p;
+    this.partidaActual = p ? this.normalizePartida(p) : null;
     this.cdr.markForCheck();
   }
 
   private setPartidas(list: EstadoPartidaDto[]): void {
-    this.partidas = list || [];
+    this.partidas = (list || []).map((p) => this.normalizePartida(p));
     this.cdr.markForCheck();
   }
 
@@ -138,10 +146,11 @@ export class Partidas implements OnInit {
     this.partidaS.listPartidas().subscribe({
       next: (data) => {
         this.setLoading(false);
-        this.setPartidas(data || []);
-        // Opcional: si no hay partida seleccionada, selecciona la primera
-        if (!this.partidaActual && this.partidas.length > 0) {
-          this.setPartidaActual(this.partidas[0]);
+        const normalized = (data ?? []).map((p) => this.normalizePartida(p));
+        this.setPartidas(normalized);
+
+        if (!this.partidaActual && normalized.length > 0) {
+          this.setPartidaActual(normalized[0]);
         }
       },
       error: (err) => {
@@ -205,7 +214,7 @@ export class Partidas implements OnInit {
           result.maxJugadores != null
             ? Number(result.maxJugadores)
             : undefined,
-        hostUsuarioId: usuarioId, // para que el backend setee el host
+        hostUsuarioId: usuarioId,
       };
 
       this.setLoading(true);
@@ -213,10 +222,10 @@ export class Partidas implements OnInit {
       this.partidaS.crearPartida(body).subscribe({
         next: (estado) => {
           this.setLoading(false);
+          const normal = this.normalizePartida(estado);
 
-          // Añadimos la nueva partida al listado y la seleccionamos
-          this.setPartidas([estado, ...this.partidas]);
-          this.setPartidaActual(estado);
+          this.setPartidas([normal, ...this.partidas]);
+          this.setPartidaActual(normal);
 
           Swal.fire({
             icon: 'success',
@@ -240,7 +249,7 @@ export class Partidas implements OnInit {
   }
 
   // ==========================
-  //   Seleccionar partida de la tabla
+  //   Seleccionar partida
   // ==========================
   onSeleccionarPartida(partida: EstadoPartidaDto): void {
     if (!partida) return;
@@ -252,13 +261,13 @@ export class Partidas implements OnInit {
     this.partidaS.getEstado(id).subscribe({
       next: (estado) => {
         this.setLoading(false);
-        this.setPartidaActual(estado);
+        const normal = this.normalizePartida(estado);
+        this.setPartidaActual(normal);
 
-        // Actualizar también la fila en el listado
-        const idx = this.partidas.findIndex((p) => p.id === estado.id);
+        const idx = this.partidas.findIndex((p) => p.id === normal.id);
         if (idx >= 0) {
           const copia = [...this.partidas];
-          copia[idx] = estado;
+          copia[idx] = normal;
           this.setPartidas(copia);
         }
       },
@@ -284,7 +293,40 @@ export class Partidas implements OnInit {
   }
 
   // ==========================
-  //   Unirse a partida (desde tabla o detalle)
+  //   Entrar al mapa (ya unido)
+  // ==========================
+  private isPlayerIn(p: EstadoPartidaDto): boolean {
+    const uid = this.currentUsuarioId;
+    if (!uid) return false;
+    const parts = p.participantes ?? [];
+    return parts.some((x) => x.usuarioId === uid);
+  }
+
+  canEnterGame(p: EstadoPartidaDto): boolean {
+    if (!this.isPlayerIn(p)) return false;
+    if (p.estado === 'FINISHED') return false;
+    return true; // WAITING o RUNNING
+  }
+
+  onEntrarJuego(partida?: EstadoPartidaDto): void {
+    const target = partida ?? this.partidaActual;
+    if (!target) return;
+
+    if (!this.canEnterGame(target)) {
+      Swal.fire({
+        icon: 'info',
+        title: 'No puedes entrar',
+        text: 'Debes estar unido a la partida y que no esté finalizada.',
+      });
+      return;
+    }
+
+    // Ruta ajustada a app.routes.ts → /inicio/partida/:id
+    this.router.navigate(['/inicio/partida', target.id]);
+  }
+
+  // ==========================
+  //   Unirse a partida
   // ==========================
   onUnirsePartida(partida?: EstadoPartidaDto): void {
     const target = partida ?? this.partidaActual;
@@ -309,9 +351,8 @@ export class Partidas implements OnInit {
       return;
     }
 
-    const yaDentro = target.participantes.some(
-      (p) => p.usuarioId === usuarioId
-    );
+    const parts = target.participantes ?? [];
+    const yaDentro = parts.some((p) => p.usuarioId === usuarioId);
     if (yaDentro) {
       Swal.fire({
         icon: 'info',
@@ -341,7 +382,6 @@ export class Partidas implements OnInit {
           options[b.id.toString()] = `${b.nombre} — Modelo: ${b.modeloNombre}`;
         });
 
-        // 2) Seleccionar barco desde SweetAlert
         Swal.fire({
           title: 'Selecciona tu barco',
           input: 'select',
@@ -365,13 +405,13 @@ export class Partidas implements OnInit {
           this.partidaS.joinPartida(target.id, body).subscribe({
             next: (estado) => {
               this.setLoading(false);
-              this.setPartidaActual(estado);
+              const normal = this.normalizePartida(estado);
+              this.setPartidaActual(normal);
 
-              // actualizar la fila en el listado
-              const idx = this.partidas.findIndex((p) => p.id === estado.id);
+              const idx = this.partidas.findIndex((p) => p.id === normal.id);
               if (idx >= 0) {
                 const copia = [...this.partidas];
-                copia[idx] = estado;
+                copia[idx] = normal;
                 this.setPartidas(copia);
               }
 
@@ -436,12 +476,13 @@ export class Partidas implements OnInit {
     this.partidaS.startPartida(this.partidaActual.id).subscribe({
       next: (estado) => {
         this.setLoading(false);
-        this.setPartidaActual(estado);
+        const normal = this.normalizePartida(estado);
+        this.setPartidaActual(normal);
 
-        const idx = this.partidas.findIndex((p) => p.id === estado.id);
+        const idx = this.partidas.findIndex((p) => p.id === normal.id);
         if (idx >= 0) {
           const copia = [...this.partidas];
-          copia[idx] = estado;
+          copia[idx] = normal;
           this.setPartidas(copia);
         }
 
@@ -477,8 +518,9 @@ export class Partidas implements OnInit {
     const uid = this.currentUsuarioId;
     if (!uid) return false;
     if (p.estado !== 'WAITING') return false;
-    if (p.participantes.some((x) => x.usuarioId === uid)) return false;
-    return p.participantes.length < p.maxJugadores;
+    const parts = p.participantes ?? [];
+    if (parts.some((x) => x.usuarioId === uid)) return false;
+    return parts.length < p.maxJugadores;
   }
 
   estadoLabel(p: EstadoPartidaDto): string {

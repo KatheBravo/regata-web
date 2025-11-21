@@ -1,302 +1,342 @@
 <div class="partidas-wrapper">
-    <mat-card class="partidas-card">
-        <!-- HEADER -->
-        <div class="card-header">
-            <div class="header-left">
-                <mat-icon>sports_esports</mat-icon>
-                <div class="title-text">
-                    <h2>Partidas</h2>
-                    <p>Lobby multijugador para crear y unirse a regatas.</p>
-                </div>
-            </div>
+  <mat-card class="partidas-card">
+    <!-- HEADER -->
+    <div class="card-header">
+      <div class="header-left">
+        <mat-icon>sports_esports</mat-icon>
+        <div class="title-text">
+          <h2>Partidas</h2>
+          <p>Lobby multijugador para crear y unirse a regatas.</p>
         </div>
+      </div>
+    </div>
 
-        <!-- ACCIONES SUPERIORES -->
-        <div class="actions-row">
-            <button mat-stroked-button color="primary"
-                (click)="onCrearPartida()">
-                <mat-icon>add_circle</mat-icon>
-                <span>Crear partida</span>
-            </button>
+    <!-- ACCIONES SUPERIORES -->
+    <div class="actions-row">
+      <button mat-stroked-button color="primary" (click)="onCrearPartida()">
+        <mat-icon>add_circle</mat-icon>
+        <span>Crear partida</span>
+      </button>
 
-            <button mat-button (click)="loadPartidas()">
-                <mat-icon>refresh</mat-icon>
-                <span>Recargar listado</span>
-            </button>
+      <button mat-button (click)="loadPartidas()">
+        <mat-icon>refresh</mat-icon>
+        <span>Recargar listado</span>
+      </button>
 
-            @if (partidaActual) {
-            <button mat-button (click)="onRefrescarEstado()">
-                <mat-icon>sync</mat-icon>
-                <span>Refrescar estado actual</span>
-            </button>
+      @if (partidaActual) {
+        <button mat-button (click)="onRefrescarEstado()">
+          <mat-icon>sync</mat-icon>
+          <span>Refrescar estado actual</span>
+        </button>
 
-            @if (partidaActual.estado === 'WAITING') {
-            <button
-                mat-stroked-button
-                color="accent"
-                (click)="onUnirsePartida(partidaActual)">
-                <mat-icon>group_add</mat-icon>
-                <span>Unirme a esta partida</span>
-            </button>
+        @if (partidaActual.estado === 'WAITING') {
+          <button
+            mat-stroked-button
+            color="accent"
+            (click)="onUnirsePartida(partidaActual)"
+          >
+            <mat-icon>group_add</mat-icon>
+            <span>Unirme a esta partida</span>
+          </button>
 
-            @if (esHost) {
+          @if (esHost) {
             <button mat-flat-button color="warn" (click)="onIniciarPartida()">
-                <mat-icon>play_arrow</mat-icon>
-                <span>Iniciar partida</span>
+              <mat-icon>play_arrow</mat-icon>
+              <span>Iniciar partida</span>
             </button>
-            }
-            }
-            }
-        </div>
-
-        <!-- CONTENIDO PRINCIPAL -->
-        @if (loading) {
-        <div class="loading-wrapper">
-            <mat-progress-spinner
-                mode="indeterminate"
-                diameter="40"></mat-progress-spinner>
-        </div>
-        } @else {
-        <!-- Detalle de la partida seleccionada -->
-        @if (!partidaActual) {
-        <div class="placeholder">
-            <p>
-                Aún no hay ninguna partida seleccionada. Puedes
-                <strong>crear una nueva</strong> o
-                <strong>elegir una de la tabla de abajo</strong>.
-            </p>
-        </div>
-        } @else {
-        <div class="partida-info">
-            <!-- RESUMEN PARTIDA -->
-            <div class="meta-grid">
-                <div class="meta-item">
-                    <div class="meta-label">ID</div>
-                    <div class="meta-value">#{{ partidaActual.id }}</div>
-                </div>
-
-                <div class="meta-item">
-                    <div class="meta-label">Nombre</div>
-                    <div class="meta-value">{{ partidaActual.nombre }}</div>
-                </div>
-
-                <div class="meta-item">
-                    <div class="meta-label">Estado</div>
-                    <div
-                        class="estado-pill"
-                        [class.estado-waiting]="partidaActual.estado === 'WAITING'"
-                        [class.estado-running]="partidaActual.estado === 'RUNNING'"
-                        [class.estado-finished]="partidaActual.estado === 'FINISHED'">
-                        {{ partidaActual.estado }}
-                    </div>
-                </div>
-
-                <div class="meta-item">
-                    <div class="meta-label">Mapa</div>
-                    <div class="meta-value">{{ partidaActual.mapaNombre }}</div>
-                </div>
-
-                <div class="meta-item">
-                    <div class="meta-label">Host</div>
-                    <div class="meta-value">
-                        @if (partidaActual.hostUsuarioNombre) {
-                        {{ partidaActual.hostUsuarioNombre }}
-                        @if (esHost) {
-                        <span class="you-tag">(tú)</span>
-                        }
-                        } @else {
-                        <span class="muted">Sin host asignado aún</span>
-                        }
-                    </div>
-                </div>
-
-                <div class="meta-item">
-                    <div class="meta-label">Jugadores</div>
-                    <div class="meta-value">
-                        {{ partidaActual.participantes.length }}/{{
-                        partidaActual.maxJugadores
-                        }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- PARTICIPANTES -->
-            <div class="participantes-section">
-                <h3>Participantes</h3>
-
-                @if (
-                !partidaActual.participantes ||
-                partidaActual.participantes.length === 0
-                ) {
-                <p class="muted">Aún no hay jugadores en esta partida.</p>
-                } @else {
-                <table
-                    mat-table
-                    [dataSource]="partidaActual.participantes"
-                    class="participantes-table">
-                    <!-- Jugador -->
-                    <ng-container matColumnDef="jugador">
-                        <th mat-header-cell *matHeaderCellDef>Jugador</th>
-                        <td mat-cell *matCellDef="let p">
-                            <div class="jugador-cell">
-                                <div class="avatar-circle">
-                                    {{ p.usuarioNombre?.charAt(0) | uppercase }}
-                                </div>
-                                <div class="jugador-meta">
-                                    <div class="jugador-nombre">
-                                        {{ p.usuarioNombre }}
-                                        @if (p.usuarioId === currentUsuarioId) {
-                                        <span class="you-tag">(tú)</span>
-                                        }
-                                    </div>
-                                    <div class="jugador-id">
-                                        ID usuario: {{ p.usuarioId }}
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </ng-container>
-
-                    <!-- Barco -->
-                    <ng-container matColumnDef="barco">
-                        <th mat-header-cell *matHeaderCellDef>Barco</th>
-                        <td mat-cell *matCellDef="let p">
-                            <div class="barco-meta">
-                                <div class="barco-nombre">{{ p.barcoNombre
-                                    }}</div>
-                                <div class="barco-id">ID barco: {{ p.barcoId
-                                    }}</div>
-                            </div>
-                        </td>
-                    </ng-container>
-
-                    <!-- Estado -->
-                    <ng-container matColumnDef="estado">
-                        <th mat-header-cell *matHeaderCellDef>Estado</th>
-                        <td mat-cell *matCellDef="let p">
-                            <span
-                                class="pill"
-                                [class.pill-dead]="!p.vivo"
-                                [class.pill-alive]="p.vivo">
-                                {{ p.vivo ? 'Vivo' : 'Fuera' }}
-                            </span>
-
-                            <span class="pill pill-meta" *ngIf="p.llegoMeta">
-                                Llegó a meta
-                            </span>
-                        </td>
-                    </ng-container>
-
-                    <!-- Pos / Vel -->
-                    <ng-container matColumnDef="pos">
-                        <th mat-header-cell *matHeaderCellDef>Pos / Vel</th>
-                        <td mat-cell *matCellDef="let p">
-                            <div class="pos-vel">
-                                <span>Pos: ({{ p.posX }}, {{ p.posY }})</span>
-                                <span>Vel: ({{ p.velX }}, {{ p.velY }})</span>
-                            </div>
-                        </td>
-                    </ng-container>
-
-                    <tr
-                        mat-header-row
-                        *matHeaderRowDef="participantesColumns"></tr>
-                    <tr
-                        mat-row
-                        *matRowDef="let row; columns: participantesColumns"></tr>
-                </table>
-                }
-            </div>
-        </div>
+          }
         }
 
-        <!-- TABLA DE PARTIDAS DISPONIBLES -->
-        <div class="partidas-list-section">
-            <h3>Partidas disponibles</h3>
+        <!-- Entrar al mapa desde el header si ya estoy dentro -->
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="canEnterGame(partidaActual)"
+          (click)="onEntrarJuego(partidaActual)"
+        >
+          <mat-icon>sports_esports</mat-icon>
+          <span>Entrar al mapa</span>
+        </button>
+      }
+    </div>
 
-            @if (!partidas || partidas.length === 0) {
-            <p class="muted">
-                No hay partidas creadas todavía. Crea una nueva para empezar.
-            </p>
+    <!-- CONTENIDO PRINCIPAL -->
+    @if (loading) {
+      <div class="loading-wrapper">
+        <mat-progress-spinner
+          mode="indeterminate"
+          diameter="40"
+        ></mat-progress-spinner>
+      </div>
+    } @else {
+      <!-- Detalle de la partida seleccionada -->
+      @if (!partidaActual) {
+        <div class="placeholder">
+          <p>
+            Aún no hay ninguna partida seleccionada. Puedes
+            <strong>crear una nueva</strong> o
+            <strong>elegir una de la tabla de abajo</strong>.
+          </p>
+        </div>
+      } @else {
+        <div class="partida-info">
+          <!-- RESUMEN PARTIDA -->
+          <div class="meta-grid">
+            <div class="meta-item">
+              <div class="meta-label">ID</div>
+              <div class="meta-value">#{{ partidaActual.id }}</div>
+            </div>
+
+            <div class="meta-item">
+              <div class="meta-label">Nombre</div>
+              <div class="meta-value">{{ partidaActual.nombre }}</div>
+            </div>
+
+            <div class="meta-item">
+              <div class="meta-label">Estado</div>
+              <div
+                class="estado-pill"
+                [class.estado-waiting]="partidaActual.estado === 'WAITING'"
+                [class.estado-running]="partidaActual.estado === 'RUNNING'"
+                [class.estado-finished]="partidaActual.estado === 'FINISHED'"
+              >
+                {{ partidaActual.estado }}
+              </div>
+            </div>
+
+            <div class="meta-item">
+              <div class="meta-label">Mapa</div>
+              <div class="meta-value">{{ partidaActual.mapaNombre }}</div>
+            </div>
+
+            <div class="meta-item">
+              <div class="meta-label">Host</div>
+              <div class="meta-value">
+                @if (partidaActual.hostUsuarioNombre) {
+                  {{ partidaActual.hostUsuarioNombre }}
+                  @if (esHost) {
+                    <span class="you-tag">(tú)</span>
+                  }
+                } @else {
+                  <span class="muted">Sin host asignado aún</span>
+                }
+              </div>
+            </div>
+
+            <div class="meta-item">
+              <div class="meta-label">Jugadores</div>
+              <div class="meta-value">
+                {{ partidaActual.participantes.length }}/{{ partidaActual.maxJugadores }}
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCIÓN: Entrar al mapa (detalle) -->
+          <div class="meta-actions">
+            <button
+              mat-raised-button
+              color="primary"
+              *ngIf="canEnterGame(partidaActual)"
+              (click)="onEntrarJuego(partidaActual)"
+            >
+              <mat-icon>sports_esports</mat-icon>
+              <span>Entrar al mapa</span>
+            </button>
+          </div>
+
+          <!-- PARTICIPANTES -->
+          <div class="participantes-section">
+            <h3>Participantes</h3>
+
+            @if (
+              !partidaActual.participantes ||
+              partidaActual.participantes.length === 0
+            ) {
+              <p class="muted">Aún no hay jugadores en esta partida.</p>
             } @else {
-            <table
+              <table
                 mat-table
-                [dataSource]="partidas"
-                class="partidas-table"
-                matSort>
-                <!-- ID -->
-                <ng-container matColumnDef="id">
-                    <th mat-header-cell *matHeaderCellDef>ID</th>
-                    <td mat-cell *matCellDef="let p">#{{ p.id }}</td>
+                [dataSource]="partidaActual.participantes"
+                class="participantes-table"
+              >
+                <!-- Jugador -->
+                <ng-container matColumnDef="jugador">
+                  <th mat-header-cell *matHeaderCellDef>Jugador</th>
+                  <td mat-cell *matCellDef="let p">
+                    <div class="jugador-cell">
+                      <div class="avatar-circle">
+                        {{ p.usuarioNombre?.charAt(0) | uppercase }}
+                      </div>
+                      <div class="jugador-meta">
+                        <div class="jugador-nombre">
+                          {{ p.usuarioNombre }}
+                          @if (p.usuarioId === currentUsuarioId) {
+                            <span class="you-tag">(tú)</span>
+                          }
+                        </div>
+                        <div class="jugador-id">
+                          ID usuario: {{ p.usuarioId }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
                 </ng-container>
 
-                <!-- Nombre -->
-                <ng-container matColumnDef="nombre">
-                    <th mat-header-cell *matHeaderCellDef>Nombre</th>
-                    <td mat-cell *matCellDef="let p">{{ p.nombre }}</td>
+                <!-- Barco -->
+                <ng-container matColumnDef="barco">
+                  <th mat-header-cell *matHeaderCellDef>Barco</th>
+                  <td mat-cell *matCellDef="let p">
+                    <div class="barco-meta">
+                      <div class="barco-nombre">{{ p.barcoNombre }}</div>
+                      <div class="barco-id">ID barco: {{ p.barcoId }}</div>
+                    </div>
+                  </td>
                 </ng-container>
 
                 <!-- Estado -->
                 <ng-container matColumnDef="estado">
-                    <th mat-header-cell *matHeaderCellDef>Estado</th>
-                    <td mat-cell *matCellDef="let p">
-                        <span
-                            class="estado-pill"
-                            [class.estado-waiting]="p.estado === 'WAITING'"
-                            [class.estado-running]="p.estado === 'RUNNING'"
-                            [class.estado-finished]="p.estado === 'FINISHED'">
-                            {{ estadoLabel(p) }}
-                        </span>
-                    </td>
+                  <th mat-header-cell *matHeaderCellDef>Estado</th>
+                  <td mat-cell *matCellDef="let p">
+                    <span
+                      class="pill"
+                      [class.pill-dead]="!p.vivo"
+                      [class.pill-alive]="p.vivo"
+                    >
+                      {{ p.vivo ? 'Vivo' : 'Fuera' }}
+                    </span>
+
+                    <span class="pill pill-meta" *ngIf="p.llegoMeta">
+                      Llegó a meta
+                    </span>
+                  </td>
                 </ng-container>
 
-                <!-- Jugadores -->
-                <ng-container matColumnDef="jugadores">
-                    <th mat-header-cell *matHeaderCellDef>Jugadores</th>
-                    <td mat-cell *matCellDef="let p">
-                        {{ p.participantes.length }}/{{ p.maxJugadores }}
-                    </td>
+                <!-- Pos / Vel -->
+                <ng-container matColumnDef="pos">
+                  <th mat-header-cell *matHeaderCellDef>Pos / Vel</th>
+                  <td mat-cell *matCellDef="let p">
+                    <div class="pos-vel">
+                      <span>Pos: ({{ p.posX }}, {{ p.posY }})</span>
+                      <span>Vel: ({{ p.velX }}, {{ p.velY }})</span>
+                    </div>
+                  </td>
                 </ng-container>
 
-                <!-- Host -->
-                <ng-container matColumnDef="host">
-                    <th mat-header-cell *matHeaderCellDef>Host</th>
-                    <td mat-cell *matCellDef="let p">
-                        @if (p.hostUsuarioNombre) {
-                        {{ p.hostUsuarioNombre }}
-                        } @else {
-                        <span class="muted">Sin host</span>
-                        }
-                    </td>
-                </ng-container>
-
-                <!-- Acciones -->
-                <ng-container matColumnDef="acciones">
-                    <th mat-header-cell *matHeaderCellDef>Acciones</th>
-                    <td mat-cell *matCellDef="let p">
-                        <button
-                            mat-icon-button
-                            matTooltip="Ver detalle"
-                            (click)="onSeleccionarPartida(p)">
-                            <mat-icon>visibility</mat-icon>
-                        </button>
-
-                        <button
-                            mat-stroked-button
-                            color="accent"
-                            *ngIf="canJoin(p)"
-                            (click)="onUnirsePartida(p)">
-                            <mat-icon>group_add</mat-icon>
-                            <span>Unirme</span>
-                        </button>
-                    </td>
-                </ng-container>
-
-                <tr mat-header-row *matHeaderRowDef="partidasColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: partidasColumns"></tr>
-            </table>
+                <tr
+                  mat-header-row
+                  *matHeaderRowDef="participantesColumns"
+                ></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: participantesColumns"
+                ></tr>
+              </table>
             }
+          </div>
         </div>
+      }
+
+      <!-- TABLA DE PARTIDAS DISPONIBLES -->
+      <div class="partidas-list-section">
+        <h3>Partidas disponibles</h3>
+
+        @if (!partidas || partidas.length === 0) {
+          <p class="muted">
+            No hay partidas creadas todavía. Crea una nueva para empezar.
+          </p>
+        } @else {
+          <table
+            mat-table
+            [dataSource]="partidas"
+            class="partidas-table"
+            matSort
+          >
+            <!-- ID -->
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let p">#{{ p.id }}</td>
+            </ng-container>
+
+            <!-- Nombre -->
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef>Nombre</th>
+              <td mat-cell *matCellDef="let p">{{ p.nombre }}</td>
+            </ng-container>
+
+            <!-- Estado -->
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef>Estado</th>
+              <td mat-cell *matCellDef="let p">
+                <span
+                  class="estado-pill"
+                  [class.estado-waiting]="p.estado === 'WAITING'"
+                  [class.estado-running]="p.estado === 'RUNNING'"
+                  [class.estado-finished]="p.estado === 'FINISHED'"
+                >
+                  {{ estadoLabel(p) }}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Jugadores -->
+            <ng-container matColumnDef="jugadores">
+              <th mat-header-cell *matHeaderCellDef>Jugadores</th>
+              <td mat-cell *matCellDef="let p">
+                {{ p.participantes.length }}/{{ p.maxJugadores }}
+              </td>
+            </ng-container>
+
+            <!-- Host -->
+            <ng-container matColumnDef="host">
+              <th mat-header-cell *matHeaderCellDef>Host</th>
+              <td mat-cell *matCellDef="let p">
+                @if (p.hostUsuarioNombre) {
+                  {{ p.hostUsuarioNombre }}
+                } @else {
+                  <span class="muted">Sin host</span>
+                }
+              </td>
+            </ng-container>
+
+            <!-- Acciones -->
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef>Acciones</th>
+              <td mat-cell *matCellDef="let p">
+                <button
+                  mat-icon-button
+                  matTooltip="Ver detalle"
+                  (click)="onSeleccionarPartida(p)"
+                >
+                  <mat-icon>visibility</mat-icon>
+                </button>
+
+                <button
+                  mat-stroked-button
+                  color="accent"
+                  *ngIf="canJoin(p)"
+                  (click)="onUnirsePartida(p)"
+                >
+                  <mat-icon>group_add</mat-icon>
+                  <span>Unirme</span>
+                </button>
+
+                <button
+                  mat-icon-button
+                  color="primary"
+                  *ngIf="canEnterGame(p)"
+                  matTooltip="Entrar al mapa"
+                  (click)="onEntrarJuego(p)"
+                >
+                  <mat-icon>sports_esports</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="partidasColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: partidasColumns"></tr>
+          </table>
         }
-    </mat-card>
+      </div>
+    }
+  </mat-card>
 </div>
