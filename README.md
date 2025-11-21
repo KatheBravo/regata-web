@@ -1,3 +1,7 @@
+## Link de video
+
+https://youtu.be/v2xxJOuGRfo
+
 ## Historias de Usuario
 
 ### Épica 1: Autenticación y roles
