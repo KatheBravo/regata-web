@@ -8,9 +8,9 @@
 **para** poder iniciar sesión y participar en carreras.
 
 **Criterios de aceptación**
-- Si el email no está registrado, el sistema crea un `Usuario` con rol por defecto `PLAYER` y `activo = true`.
-- Si el email ya existe, el sistema devuelve error de conflicto (409).
-- Al registrarme correctamente, el backend genera un JWT de acceso y lo devuelve al frontend.
+- Si el correo no está registrado, se crea un usuario con rol por defecto `PLAYER` y estado activo.
+- Si el correo ya existe, el sistema informa que el correo está en uso.
+- Tras registrarme correctamente, recibo un token de acceso para usar el sistema.
 
 ---
 
@@ -20,23 +20,22 @@
 **para** acceder al lobby y a mis recursos (barcos, partidas, etc.).
 
 **Criterios de aceptación**
-- Si las credenciales son correctas y el usuario está activo, el sistema devuelve un JWT válido.
-- Si el usuario está inactivo, el sistema devuelve error 403.
-- Si el email o la contraseña son incorrectos, devuelve error 401.
-- Se registra una entrada en `AuthSession` con token, fecha de creación y expiración.
+- Si las credenciales son correctas y el usuario está activo, se genera y devuelve un token de acceso válido.
+- Si la cuenta está desactivada, el sistema informa que el usuario no puede iniciar sesión.
+- Si el correo o la contraseña son incorrectos, el sistema indica que las credenciales no son válidas.
+- Se registra una sesión de autenticación con token, fecha de creación y expiración.
 
 ---
 
-#### HU-03 – Acceso según rol
+#### HU-03 – Reconocimiento de rol
 **Como** usuario autenticado (`ADMIN` o `PLAYER`)  
-**quiero** que el sistema reconozca mi rol a partir del JWT  
-**para** aplicar restricciones de acceso a los distintos endpoints.
+**quiero** que el sistema reconozca mi rol a partir del token  
+**para** aplicar las restricciones de acceso según mi perfil.
 
 **Criterios de aceptación**
-- El JWT incluye el `sub` (id del usuario), el email y la lista de `roles`.
-- Las rutas de autenticación (`/api/auth/**`) y JWKS (`/oauth2/jwks`) son públicas.
-- El resto de rutas `/api/**` requieren JWT válido.
-- Internamente se mapean los roles a `ROLE_ADMIN` y `ROLE_PLAYER`.
+- El token emitido incluye el identificador del usuario, su correo y la lista de roles.
+- El sistema traduce los roles a autoridades internas (`ROLE_ADMIN`, `ROLE_PLAYER`).
+- La lógica de negocio utiliza el rol para permitir o denegar operaciones sensibles (gestión de usuarios, modelos, etc.).
 
 ---
 
@@ -48,11 +47,11 @@
 **para** gestionar los jugadores y otros administradores del sistema.
 
 **Criterios de aceptación**
-- Puedo listar usuarios filtrando por rol, estado activo e email parcial.
-- Puedo crear usuarios indicando nombre, email, contraseña, rol y estado `activo`.
-- El email no puede repetirse; si existe, devuelve error 409.
-- Puedo actualizar usuarios por PUT (todos los campos) o PATCH (campos parciales).
-- Si el usuario tiene referencias (ej. barcos, partidas), al intentar eliminarlo se devuelve error de conflicto.
+- Se puede obtener el detalle de un usuario por su identificador.
+- Se puede crear un usuario indicando nombre, email, contraseña, rol y estado activo/inactivo.
+- El sistema impide registrar dos usuarios con el mismo correo.
+- Se puede actualizar la información de un usuario de forma completa o parcial (nombre, correo, contraseña, rol, activo).
+- Si un usuario tiene registros dependientes (por ejemplo barcos o partidas), el sistema impide eliminarlo e informa del conflicto.
 
 ---
 
@@ -64,10 +63,10 @@
 **para** definir las capacidades máximas de los barcos que se usarán en las carreras.
 
 **Criterios de aceptación**
-- Cada modelo tiene nombre, color, descripción, `velMax`, `acelMax` y `maniobrabilidad`.
-- El nombre del modelo no puede repetirse; si ya existe, devuelve error 409.
-- Si no se indican límites, se usan los valores por defecto definidos en la entidad.
-- El modelo queda disponible para asociarlo a barcos.
+- Cada modelo incluye nombre, color, descripción, velocidad máxima (`velMax`), aceleración máxima (`acelMax`) y maniobrabilidad.
+- El nombre de modelo debe ser único; si ya existe, el sistema informa del conflicto.
+- Si no se indican ciertos límites, se usan los valores por defecto definidos en el modelo de dominio.
+- Los modelos creados quedan disponibles para ser asociados a barcos.
 
 ---
 
@@ -77,9 +76,9 @@
 **para** ajustar las reglas o eliminar modelos obsoletos.
 
 **Criterios de aceptación**
-- Puedo actualizar todos los campos por PUT o solo algunos por PATCH.
-- No puedo cambiar el nombre a uno ya existente (error 409).
-- Si un modelo está siendo usado por algún barco, al eliminarlo se devuelve error de conflicto.
+- Se permite actualizar todos o algunos atributos de un modelo existente.
+- No se puede cambiar el nombre de un modelo a uno que ya esté registrado.
+- Si un modelo está siendo utilizado por al menos un barco, el sistema impide eliminarlo e informa del motivo.
 
 ---
 
@@ -89,8 +88,8 @@
 **para** encontrarlos rápidamente al configurarlos.
 
 **Criterios de aceptación**
-- `/api/modelos` sin parámetros devuelve todos los modelos.
-- `/api/modelos?q=texto` devuelve solo los modelos cuyo nombre contenga el texto, sin distinción de mayúsculas/minúsculas.
+- Se puede obtener el listado completo de modelos registrados.
+- Se puede filtrar la lista por un texto de búsqueda contenido en el nombre, sin distinguir mayúsculas y minúsculas.
 
 ---
 
@@ -102,10 +101,10 @@
 **para** que cada jugador tenga barcos disponibles para participar en partidas.
 
 **Criterios de aceptación**
-- Debo indicar `usuarioId`, `modeloId` y nombre del barco.
-- Si el usuario o el modelo no existen, el sistema devuelve error 422.
-- El barco se crea con posición y velocidad iniciales (por defecto 0,0).
-- El barco queda asociado al propietario (`Usuario`) y al `ModeloBarco`.
+- Para crear un barco se requiere un jugador existente, un modelo existente y un nombre de barco.
+- Si el jugador o el modelo no existen, el sistema rechaza la operación indicando el error.
+- El barco se crea asociado al propietario indicado y al modelo seleccionado.
+- La posición y velocidad iniciales del barco quedan registradas (por defecto en cero si no se especifican).
 
 ---
 
@@ -115,8 +114,9 @@
 **para** revisar y administrar las opciones de cada usuario.
 
 **Criterios de aceptación**
-- `/api/barcos` devuelve todos los barcos.
-- `/api/barcos?usuarioId=ID` devuelve solo los barcos del usuario indicado.
+- Se puede obtener el listado de todos los barcos del sistema.
+- Es posible limitar el listado únicamente a los barcos de un jugador concreto.
+- Para cada barco se muestra su nombre, propietario, modelo y estado de posición/velocidad.
 
 ---
 
@@ -126,10 +126,9 @@
 **para** corregir datos o cambiar el modelo/asignación de propietario.
 
 **Criterios de aceptación**
-- PUT exige todos los campos requeridos del barco.
-- PATCH permite enviar solo los campos a modificar (nombre, dueño, modelo, posición, velocidad).
-- Si el nuevo usuario o modelo no existen, devuelve error 422.
-- El sistema valida que el modelo sea utilizable según las reglas de visibilidad del modelo (público/propio).
+- Se puede modificar el nombre, el usuario propietario, el modelo asociado, la posición y la velocidad del barco.
+- Si se cambia el propietario o el modelo a valores inexistentes, el sistema rechaza la operación.
+- El sistema valida que el modelo elegido sea utilizable por el propietario según las reglas de visibilidad (público/propio).
 
 ---
 
@@ -139,21 +138,22 @@
 **para** depurar recursos que ya no se utilizarán.
 
 **Criterios de aceptación**
-- Si el barco no existe, devuelve 404.
-- Si se elimina correctamente, devuelve 204 sin contenido.
+- Si el barco no existe, el sistema informa que no se encontró.
+- Si el barco existe y no tiene restricciones externas, se elimina correctamente.
+- Tras la eliminación, el barco deja de aparecer en listados y consultas.
 
 ---
 
 ### Épica 5: Gestión de partidas
 
 #### HU-12 – Crear partida (lobby)
-**Como** usuario autenticado (ADMIN o PLAYER, según política de negocio)  
+**Como** usuario autenticado (`ADMIN` o `PLAYER`, según reglas de negocio)  
 **quiero** crear una nueva partida asociada a un mapa  
 **para** que otros jugadores puedan unirse desde el lobby.
 
 **Criterios de aceptación**
-- Si no envío `mapaId`, se usa el primer mapa disponible en la base de datos.
-- Puedo indicar un nombre y un número máximo de jugadores; si no, se asignan valores por defecto.
+- Se puede especificar un nombre para la partida y un número máximo de jugadores.
+- Si no se indica un mapa concreto, se utiliza el primer mapa disponible en el sistema.
 - La partida se crea en estado `WAITING` y sin host asignado inicialmente.
 
 ---
@@ -164,25 +164,25 @@
 **para** elegir a cuál unirme.
 
 **Criterios de aceptación**
-- `/api/partidas` devuelve todas las partidas con: id, nombre, estado, maxJugadores, host (si existe), ganador (si existe) y layout del mapa.
-- El listado se usa para construir el lobby en el frontend.
+- El sistema devuelve un listado con el identificador, nombre, estado, número máximo de jugadores y mapa asociado de cada partida.
+- Para partidas que ya tienen host o ganador, se muestra la información correspondiente.
+- El listado es utilizable por el frontend para construir el lobby.
 
 ---
 
 #### HU-14 – Unirse a una partida y seleccionar barco
 **Como** jugador (`PLAYER`)  
-**quiero** unirme a una partida con uno de mis barcos  
+**quiero** unirme a una partida seleccionando uno de mis barcos  
 **para** participar en la carrera.
 
 **Criterios de aceptación**
-- Solo puedo unirme si la partida está en estado `WAITING`.
-- La partida no puede estar llena; si `participantes >= maxJugadores`, devuelve error de conflicto.
-- Debo enviar `usuarioId` y `barcoId`:
-  - El barco debe existir.
-  - El barco debe pertenecer al usuario que se une.
-  - No puede haber dos participantes con el mismo usuario ni el mismo barco en la misma partida.
-- El sistema asigna una posición inicial en una celda `P` del mapa y velocidad (0,0).
-- Si soy el primer participante y la partida no tiene host, paso a ser el host de la partida.
+- Solo es posible unirse a partidas en estado `WAITING`.
+- La partida no debe haber alcanzado su número máximo de jugadores.
+- El barco elegido debe existir y pertenecer al jugador que se une.
+- Un mismo jugador no puede participar dos veces en la misma partida.
+- Un mismo barco no puede ser usado por dos participantes en la misma partida.
+- El sistema asigna al participante una posición inicial en una celda de salida (`P`) y velocidad inicial cero.
+- Si es el primer participante y la partida no tiene host, el usuario que se une queda marcado como host.
 
 ---
 
@@ -192,9 +192,9 @@
 **para** comenzar el juego por turnos.
 
 **Criterios de aceptación**
-- Solo puede iniciarse si la partida está en estado `WAITING`.
-- Debe haber al menos dos participantes; si no, devuelve error de precondición.
-- Al iniciar, la partida pasa a estado `RUNNING` y se registra la fecha de inicio.
+- Solo se puede iniciar una partida que siga en estado `WAITING`.
+- Debe haber al menos dos participantes para que la carrera comience.
+- Al iniciar, la partida pasa al estado `RUNNING` y se registra la fecha de inicio.
 
 ---
 
@@ -204,11 +204,9 @@
 **para** ver la posición y velocidad de todos los barcos y quién va ganando.
 
 **Criterios de aceptación**
-- `/api/partidas/{id}/estado` devuelve:
-  - Layout del mapa como lista de strings.
-  - Lista de participantes con posición, velocidad, estado (vivo / llegó a meta) y orden.
-  - Datos del host y, si existe, del ganador.
-- El frontend utiliza esta información para pintar el mapa ASCII y la tabla lateral de participantes.
+- El estado incluye el layout del mapa como matriz de caracteres.
+- Se devuelven todos los participantes con su posición, velocidad, si están vivos y si han llegado a meta.
+- Se incluye información del host y, en caso de existir, del ganador.
 
 ---
 
@@ -220,44 +218,45 @@
 **para** controlar su trayectoria hacia la meta respetando el modelo de movimiento.
 
 **Criterios de aceptación**
-- En cada turno envío un `TurnoRequest` con `participanteId`, `accX` y `accY`.
-- Para cada componente, la aceleración por turno está acotada por `acelMax` del modelo (`|accX| <= acelMax` y `|accY| <= acelMax`).
-- La velocidad nueva se calcula como `velNueva = velAnterior + acc`, limitada por `velMax` en cada eje.
-- La posición nueva se calcula como `posNueva = posActual + velNueva`.
+- Para cada turno se indican dos componentes de aceleración (`accX`, `accY`).
+- Cada componente de aceleración está limitado por el valor `acelMax` del modelo de barco.
+- La nueva velocidad se calcula sumando la aceleración a la velocidad actual y limitando cada componente por `velMax`.
+- La nueva posición del barco se calcula sumando la nueva velocidad a la posición actual.
 
 ---
 
-#### HU-18 – Colisiones, fuera de mapa y meta
+#### HU-18 – Colisiones, salida del mapa y meta
 **Como** jugador  
-**quiero** que el sistema aplique las reglas de colisión y meta  
+**quiero** que el sistema aplique las reglas de colisión y llegada a meta  
 **para** que la carrera siga las normas definidas por el mapa.
 
 **Criterios de aceptación**
-- Si la nueva posición queda fuera del mapa, el barco se marca como `vivo = false` (eliminado).
-- Si la nueva posición cae en una celda `X` (pared/obstáculo), el barco se marca como `vivo = false`.
-- Si la nueva posición cae en una celda `M` o `m` (meta), el barco se marca con `llegoMeta = true`, la partida cambia a estado `FINISHED` y se registra el ganador.
+- Si la nueva posición queda fuera de los límites del mapa, el participante se marca como no vivo.
+- Si la nueva posición corresponde a una celda de pared (`X`), el participante se marca como no vivo.
+- Si la nueva posición corresponde a una celda de meta (`M` o `m`), el participante se marca como que llegó a meta y se registra como candidato a ganador.
 
 ---
 
 #### HU-19 – Finalización de la partida
 **Como** jugador  
-**quiero** que la partida termine cuando alguien cruza la meta  
+**quiero** que la partida termine cuando algún barco cruza la meta  
 **para** conocer el resultado final de la carrera.
 
 **Criterios de aceptación**
-- Cuando un participante llega a meta, la partida pasa a `FINISHED` y se almacena el `ganador`.
-- Se guarda la fecha de finalización.
-- Una vez en estado `FINISHED`, no se aceptan más movimientos (`turno`) para esa partida.
+- Cuando un participante llega a la meta, la partida pasa al estado `FINISHED`.
+- Se registra qué participante es el ganador y la fecha de finalización.
+- Mientras la partida está en `FINISHED`, no se aceptan nuevos movimientos para ninguno de los participantes.
 
 ---
 
-### Épica 7: Seguridad y JWKS
+### Épica 7: Seguridad y claves públicas
 
-#### HU-20 – Exponer JWKS para validación externa
+#### HU-20 – Exponer clave pública para validación de tokens
 **Como** sistema externo  
 **quiero** obtener la clave pública del servidor  
-**para** poder validar los JWT emitidos por el backend.
+**para** poder validar los tokens emitidos por el backend.
 
 **Criterios de aceptación**
-- El endpoint `/oauth2/jwks` devuelve un JSON Web Key Set con la clave pública usada para firmar los tokens.
-- La respuesta incluye el `kid` y el algoritmo `RS256`, de forma compatible con validación estándar de JWT.
+- La aplicación expone su clave pública en formato de conjunto de claves (JWKS).
+- La clave publicada incluye identificador de clave (`kid`) y algoritmo de firma utilizado.
+- Los tokens generados por el backend pueden ser validados correctamente usando esta clave pública.
